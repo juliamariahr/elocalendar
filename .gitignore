@@ -1,0 +1,55 @@
+# Diretórios e arquivos do Node.js
+node_modules/
+package-lock.json
+yarn.lock
+npm-debug.log*
+yarn-error.log
+
+# Expo e React Native
+.expo/
+.expo-shared/
+android/
+ios/
+*.expo
+*.iml
+*.log
+*.DS_Store
+expo-env.d.ts
+
+# Builds e caches
+dist/
+build/
+.babelrc
+.cache/
+metro.config.js
+babel.config.js
+expo-settings.json
+
+# Firebase
+firebase-debug.log
+firebase-debug.*
+google-services.json
+android/app/google-services.json
+ios/GoogleService-Info.plist
+
+# Credenciais e arquivos sensíveis
+.env
+.env.*
+config.js
+
+# IDEs e editores
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# Testes e cobertura
+coverage/
+jest/
+__tests__/
+*.snap
+*.spec.js
+*.test.js
+
+# Expo autogerado
+*.expo/
