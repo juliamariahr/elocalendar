@@ -6,11 +6,11 @@ export default function BottomNav() {
   const router = useRouter();
 
   const openCalendar = () => {
-    router.push('/calendar'); // Abre a tela de calendário
+    router.push('/calendar');
   };
 
   const openMenstruationSelection = () => {
-    router.push('/(setup)/SelectMenstruation'); // Abre a seleção da menstruação
+    router.push('/(setup)/SelectMenstruation');
   };
 
   return (
@@ -27,7 +27,7 @@ export default function BottomNav() {
       <TouchableOpacity>
         <Ionicons name="bar-chart-outline" size={28} color="#fff" />
       </TouchableOpacity>
-      <TouchableOpacity>
+      <TouchableOpacity onPress={() => router.push('/settings')}>
         <Ionicons name="settings-outline" size={28} color="#fff" />
       </TouchableOpacity>
     </View>
