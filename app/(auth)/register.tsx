@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
 import { auth, db } from "../../config/firebase";
 import { createUserWithEmailAndPassword } from "firebase/auth";
@@ -12,21 +12,24 @@ export default function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
 
   const handleRegister = async () => {
+    setErrorMessage("")
+
     if (!name || !birthdate || !email || !password || !confirmPassword) {
-      Alert.alert("Erro", "Preencha todos os campos.");
+      setErrorMessage("Preencha todos os campos.");
       return;
     }
 
     const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/;
     if (!passwordRegex.test(password)) {
-      Alert.alert("Erro", "A senha deve ter pelo menos uma letra maiúscula, um número e um caractere especial.");
+      setErrorMessage("A senha deve ter pelo menos uma letra maiúscula, um número e um caractere especial.");
       return;
     }
 
     if (password !== confirmPassword) {
-      Alert.alert("Erro", "As senhas não coincidem.");
+      setErrorMessage("As senhas não coincidem.");
       return;
     }
 
@@ -41,23 +44,20 @@ export default function Register() {
         cicloConfigurado: false,
       });
 
-      Alert.alert("Sucesso", "Cadastro realizado com sucesso!");
-
-      // Redireciona para a primeira pergunta do fluxo de configuração
       router.replace("/(setup)/MenstruationDate");
     } catch (error: any) {
       console.error("Erro ao registrar usuário:", error.code, error.message);
 
-      let errorMessage = "Erro ao cadastrar. Tente novamente.";
+      let customMessage = "Erro ao cadastrar. Tente novamente.";
       if (error.code === "auth/email-already-in-use") {
-        errorMessage = "Este e-mail já está cadastrado.";
+        customMessage = "Este e-mail já está cadastrado.";
       } else if (error.code === "auth/invalid-email") {
-        errorMessage = "O e-mail digitado é inválido.";
+        customMessage = "O e-mail digitado é inválido.";
       } else if (error.code === "auth/weak-password") {
-        errorMessage = "A senha deve ter pelo menos 6 caracteres.";
+        customMessage = "A senha deve ter pelo menos 6 caracteres.";
       }
 
-      Alert.alert("Erro", errorMessage);
+      setErrorMessage(customMessage);
     }
   };
 
@@ -65,7 +65,7 @@ export default function Register() {
     const formattedText = text
       .replace(/\D/g, "")
       .replace(/(\d{2})(\d)/, "$1/$2")
-      .replace(/(\d{2})(\d{4})$/, "$1/$2"); 
+      .replace(/(\d{2})(\d{4})$/, "$1/$2");
     setBirthdate(formattedText);
   };
 
@@ -104,6 +104,8 @@ export default function Register() {
         placeholder="Confirme sua senha"
         secureTextEntry
       />
+
+      {errorMessage !== "" && <Text style={styles.errorText}>{errorMessage}</Text>}
 
       <TouchableOpacity style={styles.button} onPress={handleRegister}>
         <Text style={styles.buttonText}>Registrar</Text>
@@ -145,6 +147,13 @@ const styles = StyleSheet.create({
   buttonText: {
     color: "#fff",
     fontSize: 16,
+    fontWeight: "bold",
+  },
+  errorText: {
+    color: "#b00020",
+    fontSize: 14,
+    textAlign: "center",
+    marginVertical: 8,
     fontWeight: "bold",
   },
 });

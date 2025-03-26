@@ -22,9 +22,6 @@ export default function Index() {
   return (
     <View style={styles.container}>
       <Image source={require('../assets/images/logo.png')} style={styles.logo} />
-      <Text style={styles.slogan}>
-        Conexão <Text style={styles.highlight}>e harmonia</Text> com seu próprio corpo
-      </Text>
       
       <TouchableOpacity style={styles.registerButton} onPress={() => router.push('/register')}>
         <Text style={styles.registerText}>Registrar</Text>
