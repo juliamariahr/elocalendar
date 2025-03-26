@@ -7,13 +7,13 @@ import { useMenstrualCycle } from "../../hooks/useMenstrualCycle";
 
 const formatarData = (dataString?: string) => {
   if (!dataString) return "Carregando...";
-  const data = new Date(dataString);
+  const data = new Date(`${dataString}T12:00:00`);
   return data.toLocaleDateString("pt-BR", { day: "2-digit", month: "short" });
 };
 
 export default function Home() {
   const router = useRouter();
-  const ciclo = useMenstrualCycle(); 
+  const ciclo = useMenstrualCycle();
 
   const [fasesCiclo] = useState([
     { id: "1", fase: "Período Fértil", icone: "leaf", cor: "#ffeb99" },
@@ -39,22 +39,23 @@ export default function Home() {
   }
 
   const hoje = new Date();
-  hoje.setHours(0, 0, 0, 0);
-  const ultimaMenstruacao = new Date(ciclo.ultimaMenstruacao);
-  const diaDoCiclo = Math.floor((hoje.getTime() - ultimaMenstruacao.getTime()) / (1000 * 60 * 60 * 24)) + 1;
-
+  hoje.setHours(12, 0, 0, 0);
+  const ultimaMenstruacao = new Date(`${ciclo.ultimaMenstruacao}T12:00:00`);
+  const diff = hoje.getTime() - ultimaMenstruacao.getTime();
+  const diaDoCiclo = diff >= 0 ? Math.floor(diff / (1000 * 60 * 60 * 24)) + 1 : null;
+  
   let faseAtual = "Fora do período fértil";
   let probabilidadeGravidez = "Baixa";
 
-  if (hoje >= new Date(ciclo.ultimaMenstruacao) && hoje <= new Date(ciclo.fimMenstruacao)) {
-    faseAtual = "Menstruação";
-    probabilidadeGravidez = "Muito baixa";
+  if (hoje.toDateString() === new Date(ciclo.ovulacao).toDateString()) {
+    faseAtual = "Ovulação";
+    probabilidadeGravidez = "Muito alta";
   } else if (hoje >= new Date(ciclo.inicioFertilidade) && hoje <= new Date(ciclo.fimFertilidade)) {
     faseAtual = "Período Fértil";
     probabilidadeGravidez = "Alta";
-  } else if (hoje.toDateString() === new Date(ciclo.ovulacao).toDateString()) {
-    faseAtual = "Ovulação";
-    probabilidadeGravidez = "Muito alta";
+  } else if (hoje >= new Date(ciclo.ultimaMenstruacao) && hoje <= new Date(ciclo.fimMenstruacao)) {
+    faseAtual = "Menstruação";
+    probabilidadeGravidez = "Muito baixa";
   }
 
   return (
@@ -94,7 +95,9 @@ export default function Home() {
         <View style={styles.statusRow}>
           <FontAwesome5 name="tint" size={18} color="#d32f2f" style={styles.dropIcon} />
           <Text style={styles.statusText}>
-            Hoje - Dia {diaDoCiclo} do ciclo
+            {diaDoCiclo !== null
+              ? `Hoje - Dia ${diaDoCiclo} do ciclo`
+              : "Fora do ciclo menstrual"}
           </Text>
         </View>
         <Text style={styles.statusSubText}>{faseAtual} - {probabilidadeGravidez} probabilidade de engravidar</Text>
@@ -108,20 +111,20 @@ export default function Home() {
           horizontal
           showsHorizontalScrollIndicator={false}
           keyExtractor={(item) => item.id}
-          renderItem={({ item, index }) => (
-            <TouchableOpacity
-              style={[styles.card, { backgroundColor: item.cor }]}
-              onPress={abrirCalendario}
-            >
-              <Text style={styles.cardDate}>
-                {formatarData(
-                  index === 0 ? ciclo.inicioFertilidade : index === 1 ? ciclo.ovulacao : ciclo.proximaMenstruacao
-                )}
-              </Text>
-              <Text style={styles.cardText}>{item.fase}</Text>
-              <FontAwesome5 name={item.icone} size={20} color="#333" />
-            </TouchableOpacity>
-          )}
+          renderItem={({ item }) => {
+            let dataFase = "";
+            if (item.fase === "Período Fértil") dataFase = ciclo.inicioFertilidade;
+            else if (item.fase === "Ovulação") dataFase = ciclo.ovulacao;
+            else if (item.fase === "Próxima Menstruação") dataFase = ciclo.proximaMenstruacao;
+
+            return (
+              <TouchableOpacity style={[styles.card, { backgroundColor: item.cor }]} onPress={abrirCalendario}>
+                <Text style={styles.cardDate}>{formatarData(dataFase)}</Text>
+                <Text style={styles.cardText}>{item.fase}</Text>
+                <FontAwesome5 name={item.icone} size={20} color="#333" />
+              </TouchableOpacity>
+            );
+          }}
         />
       </View>
 

@@ -11,13 +11,24 @@ export default function MenstruationDate() {
   const [cycleLength, setCycleLength] = useState("");
   const [diasMenstruacao, setDiasMenstruacao] = useState("");
 
-  // Função para formatar a data automaticamente
   const handleDateChange = (text: string) => {
     const formattedText = text
-      .replace(/\D/g, "") 
+      .replace(/\D/g, "")
       .replace(/(\d{2})(\d)/, "$1/$2")
       .replace(/(\d{2})(\d{4})$/, "$1/$2");
     setMenstruationDate(formattedText);
+  };
+
+  const isValidDate = (dateStr: string) => {
+    const [day, month, year] = dateStr.split("/").map(Number);
+    const date = new Date(year, month - 1, day);
+    return (
+      date instanceof Date &&
+      !isNaN(date.getTime()) &&
+      date.getDate() === day &&
+      date.getMonth() === month - 1 &&
+      date.getFullYear() === year
+    );
   };
 
   const handleNext = async () => {
@@ -26,8 +37,13 @@ export default function MenstruationDate() {
       return;
     }
 
-    const ciclo = parseInt(cycleLength, 10);
-    const duracaoMenstruacao = parseInt(diasMenstruacao, 10);
+    if (!isValidDate(menstruationDate)) {
+      Alert.alert("Erro", "Digite uma data válida para a menstruação.");
+      return;
+    }
+
+    const ciclo = Number(cycleLength);
+    const duracaoMenstruacao = Number(diasMenstruacao);
 
     if (isNaN(ciclo) || isNaN(duracaoMenstruacao)) {
       Alert.alert("Erro", "A duração do ciclo e da menstruação devem ser números.");
@@ -50,7 +66,9 @@ export default function MenstruationDate() {
         await updateDoc(doc(db, "usuarios", user.uid), {
           menstruationStart: menstruationDate,
           cycleLength: ciclo,
-          menstruationDuration: duracaoMenstruacao, 
+          menstruationDuration: duracaoMenstruacao,
+          cicloConfigurado: true,
+          updatedAt: new Date().toISOString(),
         });
 
         router.push("/(setup)/ContraceptiveMethod");

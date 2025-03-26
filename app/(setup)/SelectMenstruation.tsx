@@ -3,13 +3,20 @@ import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { Calendar } from "react-native-calendars";
 import { useRouter } from "expo-router";
 import { auth, db } from "../../config/firebase";
-import { doc, updateDoc, getDoc } from "firebase/firestore";
+import { doc, updateDoc, getDoc, collection, addDoc, Timestamp } from "firebase/firestore";
+import BackButton from "../../components/BackButton";
+
+function formatToISO(dateStr: string): string {
+  if (/^\d{2}\/\d{2}\/\d{4}$/.test(dateStr)) {
+    const [dia, mes, ano] = dateStr.split("/");
+    return `${ano}-${mes.padStart(2, "0")}-${dia.padStart(2, "0")}`;
+  }
+  return dateStr;
+}
 
 export default function SelectMenstruation() {
   const router = useRouter();
   const [selectedDates, setSelectedDates] = useState<Record<string, any>>({});
-  const [menstruationDuration, setMenstruationDuration] = useState(5);
-  const [startDate, setStartDate] = useState<string | null>(null);
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth() + 1);
 
   useEffect(() => {
@@ -18,53 +25,61 @@ export default function SelectMenstruation() {
       if (user) {
         const userDoc = await getDoc(doc(db, "usuarios", user.uid));
         if (userDoc.exists()) {
-          setMenstruationDuration(userDoc.data().menstruationDuration || 5);
+          const { menstruationDays } = userDoc.data();
+          if (menstruationDays && menstruationDays.length > 0) {
+            const selected: Record<string, any> = {};
+            menstruationDays.forEach((date: string) => {
+              selected[formatToISO(date)] = { selected: true };
+            });
+            setSelectedDates(selected);
+          }
         }
       }
     };
     fetchUserCycle();
   }, []);
 
-  const handleDaySelect = (day: { dateString: string, month: number }) => {
+  const handleDaySelect = (day: { dateString: string; month: number }) => {
     if (day.month !== currentMonth) return;
 
     const date = day.dateString;
+    const newSelection = { ...selectedDates };
 
-    if (selectedDates[date]) {
-      const newSelection = { ...selectedDates };
+    if (newSelection[date]) {
       delete newSelection[date];
-      setSelectedDates(newSelection);
     } else {
-      const newSelection: Record<string, any> = {};
-      const startDate = new Date(date);
-      setStartDate(date);
-
-      for (let i = 0; i < menstruationDuration; i++) {
-        const nextDate = new Date(startDate);
-        nextDate.setDate(startDate.getDate() + i);
-        const nextDateString = nextDate.toISOString().split("T")[0];
-
-        newSelection[nextDateString] = { selected: true };
-      }
-      setSelectedDates(newSelection);
+      newSelection[date] = { selected: true };
     }
+
+    setSelectedDates(newSelection);
   };
 
   const handleConfirm = async () => {
-    if (!startDate) {
+    const orderedDates = Object.keys(selectedDates).sort();
+    if (orderedDates.length === 0) {
       alert("Selecione ao menos um dia para continuar.");
       return;
     }
 
+    const formattedDates = orderedDates.map(formatToISO);
+    const firstDate = formattedDates[0];
+
     const user = auth.currentUser;
     if (user) {
       try {
-        await updateDoc(doc(db, "usuarios", user.uid), {
-          menstruationStart: startDate,
-          menstruationDays: Object.keys(selectedDates),
+        await addDoc(collection(db, "usuarios", user.uid, "ciclosMenstruais"), {
+          menstruationStart: firstDate,
+          menstruationDays: formattedDates,
+          createdAt: Timestamp.now(),
         });
 
-        router.push("/calendar");
+        await updateDoc(doc(db, "usuarios", user.uid), {
+          menstruationStart: firstDate,
+          menstruationDays: formattedDates,
+          updatedAt: Timestamp.now(),
+        });
+
+        router.push({ pathname: "/calendar", params: { refetch: "true" } });
       } catch (error) {
         console.error("Erro ao salvar:", error);
         alert("Erro ao salvar os dados. Tente novamente.");
@@ -74,6 +89,7 @@ export default function SelectMenstruation() {
 
   return (
     <View style={styles.container}>
+      <BackButton />
       <Text style={styles.headerTitle}>Selecionar Menstruação</Text>
 
       <View style={styles.calendarWrapper}>
@@ -91,7 +107,7 @@ export default function SelectMenstruation() {
             monthTextColor: "#6a3b7d",
           }}
           style={styles.calendar}
-          dayComponent={({ date }: { date: { dateString: string; day: number, month: number } }) => {
+          dayComponent={({ date }: { date: { dateString: string; day: number; month: number } }) => {
             const dateString = date?.dateString;
             const isOutOfMonth = date?.month !== currentMonth;
 
@@ -124,31 +140,31 @@ export default function SelectMenstruation() {
 }
 
 const styles = StyleSheet.create({
-  container: { 
-    flex: 1, 
-    backgroundColor: "#f5e9f0", 
-    alignItems: "center", 
+  container: {
+    flex: 1,
+    backgroundColor: "#f5e9f0",
+    alignItems: "center",
     paddingVertical: 30,
   },
-  headerTitle: { 
-    fontSize: 20, 
-    fontWeight: "bold", 
-    color: "#6a3b7d", 
-    marginBottom: 20 
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#6a3b7d",
+    marginBottom: 20,
   },
-  calendarWrapper: { 
-    backgroundColor: "#fff", 
+  calendarWrapper: {
+    backgroundColor: "#fff",
     borderRadius: 10,
     padding: 15,
-    width: "90%", 
-    elevation: 5, 
+    width: "90%",
+    elevation: 5,
   },
   calendar: {
     width: "100%",
     borderRadius: 10,
   },
   dayContainer: {
-    width: 50, 
+    width: 50,
     height: 50,
     justifyContent: "center",
     alignItems: "center",
@@ -168,8 +184,14 @@ const styles = StyleSheet.create({
   selectedIndicator: {
     backgroundColor: "#a87cb3",
   },
-  dayText: { fontSize: 18, fontWeight: "bold", color: "#333" },
-  outOfMonthText: { color: "#ccc" },
+  dayText: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#333",
+  },
+  outOfMonthText: {
+    color: "#ccc",
+  },
   saveButton: {
     marginTop: 25,
     backgroundColor: "#a87cb3",
@@ -177,9 +199,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 60,
     borderRadius: 25,
   },
-  saveText: { 
-    color: "#fff", 
-    fontSize: 18, 
-    fontWeight: "bold" 
+  saveText: {
+    color: "#fff",
+    fontSize: 18,
+    fontWeight: "bold",
   },
 });

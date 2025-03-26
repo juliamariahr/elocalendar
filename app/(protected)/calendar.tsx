@@ -4,15 +4,14 @@ import { Calendar } from "react-native-calendars";
 import { useRouter } from "expo-router";
 import { FontAwesome5 } from "@expo/vector-icons";
 import BottomNav from "../../components/BottomNav";
+import BackButton from "../../components/BackButton";
 import { useMenstrualCycle } from "../../hooks/useMenstrualCycle";
 
 export default function CalendarScreen() {
   const router = useRouter();
   const [currentDate, setCurrentDate] = useState(new Date());
   const ciclo = useMenstrualCycle();
-  const [selectedDate, setSelectedDate] = useState(
-    new Date().toISOString().split("T")[0]
-  );
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split("T")[0]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -33,33 +32,67 @@ export default function CalendarScreen() {
   const markedDates: Record<string, any> = {};
 
   if (ciclo) {
-    const { ultimaMenstruacao, fimMenstruacao, proximaMenstruacao, ovulacao, inicioFertilidade, fimFertilidade } = ciclo;
+    const {
+      ultimaMenstruacao,
+      fimMenstruacao,
+      proximaMenstruacao,
+      ovulacao,
+      inicioFertilidade,
+      fimFertilidade,
+      menstruationDuration
+    } = ciclo;
 
+    // Menstruação atual
     let dataAtual = new Date(ultimaMenstruacao);
     while (dataAtual <= new Date(fimMenstruacao)) {
       const dataStr = dataAtual.toISOString().split("T")[0];
       markedDates[dataStr] = {
-        customStyles: { container: { backgroundColor: "#a87cb3", borderRadius: 5 }, text: { color: "#fff", fontWeight: "bold" } },
+        customStyles: {
+          container: { backgroundColor: "#a87cb3", borderRadius: 5 },
+          text: { color: "#fff", fontWeight: "bold" }
+        },
         type: "menstruation",
       };
       dataAtual.setDate(dataAtual.getDate() + 1);
     }
 
+    // Período fértil
     let fertilStart = new Date(inicioFertilidade);
     while (fertilStart <= new Date(fimFertilidade)) {
       const dataStr = fertilStart.toISOString().split("T")[0];
       markedDates[dataStr] = {
-        customStyles: { container: { backgroundColor: "#ffeb99", borderRadius: 5 }, text: { color: "#333", fontWeight: "bold" } },
+        customStyles: {
+          container: { backgroundColor: "#ffeb99", borderRadius: 5 },
+          text: { color: "#333", fontWeight: "bold" }
+        },
         type: "fertility",
       };
       fertilStart.setDate(fertilStart.getDate() + 1);
     }
 
+    // Ovulação
     const ovulacaoStr = new Date(ovulacao).toISOString().split("T")[0];
     markedDates[ovulacaoStr] = {
-      customStyles: { container: { backgroundColor: "#ffcc99", borderRadius: 5 }, text: { color: "#333", fontWeight: "bold" } },
+      customStyles: {
+        container: { backgroundColor: "#ffcc99", borderRadius: 5 },
+        text: { color: "#333", fontWeight: "bold" }
+      },
       type: "ovulation",
     };
+
+    // Próxima menstruação
+    let proxMenstruacao = new Date(proximaMenstruacao);
+    for (let i = 0; i < menstruationDuration; i++) {
+      const proxDateStr = proxMenstruacao.toISOString().split("T")[0];
+      markedDates[proxDateStr] = {
+        customStyles: {
+          container: { backgroundColor: "#d6a3e6", borderRadius: 5 },
+          text: { color: "#fff", fontWeight: "bold" }
+        },
+        type: "next-period",
+      };
+      proxMenstruacao.setDate(proxMenstruacao.getDate() + 1);
+    }
   }
 
   if (markedDates[todayStr]) {
@@ -84,6 +117,7 @@ export default function CalendarScreen() {
 
   return (
     <ScrollView style={styles.scrollContainer} contentContainerStyle={{ flexGrow: 1 }}>
+      <BackButton />
       <View style={styles.container}>
         {/* Calendário */}
         <View style={styles.calendarWrapper}>
@@ -136,7 +170,7 @@ export default function CalendarScreen() {
           />
         </View>
 
-        {/* Informações do Dia Selecionado */}
+        {/* Informações do dia selecionado */}
         <View style={styles.infoContainer}>
           <View style={styles.infoHeader}>
             <Text style={styles.infoTitle}>{formatarDiaSemana(selectedDate)}</Text>
@@ -152,16 +186,18 @@ export default function CalendarScreen() {
               ? "Ovulação"
               : markedDates[selectedDate]?.type === "fertility"
               ? "Período Fértil"
+              : markedDates[selectedDate]?.type === "next-period"
+              ? "Próxima Menstruação"
               : "Fora do período fértil"}
           </Text>
 
           <Text style={styles.infoDescription}>
-            {markedDates[selectedDate]?.type ? "Alta - Probabilidade de engravidar" : "Baixa - Fora do período fértil"}
+            {markedDates[selectedDate]?.type
+              ? "Alta - Probabilidade de engravidar"
+              : "Baixa - Fora do período fértil"}
           </Text>
-
           <Text style={styles.infoNotes}>(Anotações)</Text>
         </View>
-
         <BottomNav />
       </View>
     </ScrollView>
@@ -169,82 +205,84 @@ export default function CalendarScreen() {
 }
 
 const styles = StyleSheet.create({
-  scrollContainer: { 
+  scrollContainer: {
     flex: 1,
-    backgroundColor: "#f5e9f0" 
+    backgroundColor: "#f5e9f0"
   },
-  container: { 
-    flexGrow: 1, 
-    backgroundColor: "#f5e9f0" 
+  container: {
+    flexGrow: 1,
+    backgroundColor: "#f5e9f0",
+    paddingTop: 50
   },
-  calendarWrapper: { 
-    backgroundColor: "#fff", 
-    borderRadius: 10, 
-    marginHorizontal: 15, 
-    padding: 10 
+  calendarWrapper: {
+    backgroundColor: "#fff",
+    borderRadius: 10,
+    marginHorizontal: 15,
+    padding: 10
   },
-  dayContainer: { 
-    width: 40, 
-    height: 40, 
-    justifyContent: "center", 
-    alignItems: "center", 
-    borderRadius: 5 
+  dayContainer: {
+    width: 40,
+    height: 40,
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 5
   },
-  dayText: { 
-    fontSize: 16, 
-    fontWeight: "bold" 
+  dayText: {
+    fontSize: 16,
+    fontWeight: "bold"
   },
-  icon: { 
-    marginTop: 3 
+  icon: {
+    marginTop: 3
   },
-  disabledDay: { 
-    opacity: 0.3 
+  disabledDay: {
+    opacity: 0.3
   },
-  disabledDayText: { 
-    color: "#ccc" 
+  disabledDayText: {
+    color: "#ccc"
   },
-  infoContainer: { 
-    backgroundColor: "#fff", 
-    padding: 15, 
-    borderRadius: 10, 
-    elevation: 3, 
-    marginHorizontal: 15, 
-    marginTop: 15 
+  infoContainer: {
+    backgroundColor: "#fff",
+    padding: 15,
+    borderRadius: 10,
+    elevation: 3,
+    marginHorizontal: 15,
+    marginTop: 15
   },
-  infoHeader: { 
-    flexDirection: "row", 
-    justifyContent: "space-between", 
-    alignItems: "center" 
+  infoHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center"
   },
-  infoTitle: { 
-    fontSize: 18, 
-    fontWeight: "bold", 
-    color: "#6a3b7d" 
+  infoTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#6a3b7d"
   },
-  editButton: { 
-    backgroundColor: "#a87cb3", 
-    paddingVertical: 6, 
+  editButton: {
+    backgroundColor: "#a87cb3",
+    paddingVertical: 6,
     paddingHorizontal: 15,
-    borderRadius: 15 
+    borderRadius: 15
   },
-  editButtonText: { 
-    color: "#fff", 
-    fontSize: 14, 
-    fontWeight: "bold" 
+  editButtonText: {
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: "bold"
   },
-  infoSubText: { 
-    fontSize: 14, 
-    color: "#6a3b7d", 
-    marginTop: 5 
+  infoSubText: {
+    fontSize: 14,
+    color: "#6a3b7d",
+    marginTop: 5
   },
-  infoDescription: { 
-    fontSize: 14, 
-    fontWeight: "bold", 
+  infoDescription: {
+    fontSize: 14,
+    fontWeight: "bold",
     color: "#333",
-    marginTop: 5 
+    marginTop: 5
   },
-  infoNotes: { fontSize: 12, 
-    color: "#666", 
-    marginTop: 5 
+  infoNotes: {
+    fontSize: 12,
+    color: "#666",
+    marginTop: 5
   },
 });
