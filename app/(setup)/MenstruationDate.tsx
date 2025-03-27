@@ -5,6 +5,11 @@ import { auth, db } from "../../config/firebase";
 import { doc, updateDoc } from "firebase/firestore";
 import SmoothTransition from "../../components/SmoothTransition";
 
+function formatToISO(dateStr: string): string {
+  const [day, month, year] = dateStr.split("/");
+  return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
+}
+
 export default function MenstruationDate() {
   const router = useRouter();
   const [menstruationDate, setMenstruationDate] = useState("");
@@ -63,8 +68,10 @@ export default function MenstruationDate() {
     const user = auth.currentUser;
     if (user) {
       try {
+        const formattedDateISO = formatToISO(menstruationDate);
+
         await updateDoc(doc(db, "usuarios", user.uid), {
-          menstruationStart: menstruationDate,
+          menstruationStart: formattedDateISO,
           cycleLength: ciclo,
           menstruationDuration: duracaoMenstruacao,
           cicloConfigurado: true,

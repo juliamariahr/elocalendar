@@ -18,6 +18,17 @@ interface CycleData {
   menstruationDaysPassados: string[];
 }
 
+function formatarDataISO(date: string): Date | null {
+  if (/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    return new Date(`${date}T12:00:00`);
+  }
+  if (/^\d{2}\/\d{2}\/\d{4}$/.test(date)) {
+    const [day, month, year] = date.split("/");
+    return new Date(`${year}-${month}-${day}T12:00:00`);
+  }
+  return null;
+}
+
 export function useMenstrualCycle() {
   const [cycleInfo, setCycleInfo] = useState<CycleData | null>(null);
   const { refetch } = useLocalSearchParams();
@@ -58,8 +69,8 @@ export function useMenstrualCycle() {
     cycleLength: number,
     menstruationDaysPassados: string[]
   ) {
-    const dataUltimaMenstruacao = new Date(`${menstruationStartISO}T12:00:00`);
-    if (isNaN(dataUltimaMenstruacao.getTime())) {
+    const dataUltimaMenstruacao = formatarDataISO(menstruationStartISO);
+    if (!dataUltimaMenstruacao || isNaN(dataUltimaMenstruacao.getTime())) {
       console.error("Erro: Data inválida.");
       return;
     }
@@ -105,7 +116,10 @@ export function useMenstrualCycle() {
       menstruationDuration,
       cycleLength,
       futurasMenstruacoes,
-      menstruationDaysPassados: menstruationDaysPassados.map((d: string) => format(new Date(`${d}T12:00:00`), "yyyy-MM-dd")),
+      menstruationDaysPassados: menstruationDaysPassados.map((d: string) => {
+        const date = formatarDataISO(d);
+        return date ? format(date, "yyyy-MM-dd") : "";
+      }).filter(Boolean),
     });
   }
 
