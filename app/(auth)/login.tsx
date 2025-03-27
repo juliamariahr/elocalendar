@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { auth, db } from '../../config/firebase';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
+import BackButton from "../../components/BackButton";
 
 export default function Login() {
   const router = useRouter();
@@ -31,6 +32,7 @@ export default function Login() {
 
   return (
     <View style={styles.container}>
+      <BackButton />
       <Text style={styles.label}>E-mail</Text>
       <TextInput 
         style={styles.input} 
@@ -60,7 +62,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f5e9f0',
+    backgroundColor: '#F6E4F6',
     padding: 20,
   },
   label: {

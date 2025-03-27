@@ -35,13 +35,13 @@ export default function Settings() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5e9f0",
+    backgroundColor: "#F6E4F6",
   },
   header: {
     paddingTop: 60,
     paddingBottom: 20,
     alignItems: "center",
-    backgroundColor: "#f5e9f0",
+    backgroundColor: "#F6E4F6",
   },
   title: {
     fontSize: 22,
