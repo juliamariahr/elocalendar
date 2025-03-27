@@ -129,7 +129,7 @@ export default function CalendarScreen() {
 
   return (
     <ScrollView style={styles.scrollContainer} contentContainerStyle={{ flexGrow: 1 }}>
-      <BackButton />
+      <BackButton route="/home" />
       <View style={styles.container}>
         <View style={styles.calendarWrapper}>
           <Calendar

@@ -10,15 +10,15 @@ export default function Settings() {
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      router.replace("/(auth)/login");
+      router.replace("/");
     } catch (error) {
       Alert.alert("Erro", "Não foi possível sair da conta.");
     }
-  };
+  };  
 
   return (
     <View style={styles.container}>
-      <BackButton />
+      <BackButton route="/home" />
       <View style={styles.header}>
         <Text style={styles.title}>Configurações</Text>
       </View>

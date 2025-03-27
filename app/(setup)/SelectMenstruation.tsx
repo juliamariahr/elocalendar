@@ -66,7 +66,7 @@ export default function SelectMenstruation() {
 
   return (
     <View style={styles.container}>
-      <BackButton />
+      <BackButton route="/home" />
       <Text style={styles.headerTitle}>Selecionar Menstruação</Text>
 
       <View style={styles.calendarWrapper}>
