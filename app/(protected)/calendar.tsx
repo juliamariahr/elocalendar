@@ -35,28 +35,55 @@ export default function CalendarScreen() {
     const {
       ultimaMenstruacao,
       fimMenstruacao,
-      proximaMenstruacao,
       ovulacao,
       inicioFertilidade,
       fimFertilidade,
-      menstruationDuration
+      menstruationDuration,
+      futurasMenstruacoes,
+      menstruationDaysPassados
     } = ciclo;
 
-    // Menstruação atual
-    let dataAtual = new Date(ultimaMenstruacao);
-    while (dataAtual <= new Date(fimMenstruacao)) {
-      const dataStr = dataAtual.toISOString().split("T")[0];
-      markedDates[dataStr] = {
+    menstruationDaysPassados?.forEach((dateStr: string) => {
+      markedDates[dateStr] = {
         customStyles: {
           container: { backgroundColor: "#a87cb3", borderRadius: 5 },
           text: { color: "#fff", fontWeight: "bold" }
         },
         type: "menstruation",
       };
+    });
+
+    let dataAtual = new Date(ultimaMenstruacao);
+    while (dataAtual <= new Date(fimMenstruacao)) {
+      const dataStr = dataAtual.toISOString().split("T")[0];
+      if (!markedDates[dataStr]) {
+        markedDates[dataStr] = {
+          customStyles: {
+            container: { backgroundColor: "#a87cb3", borderRadius: 5 },
+            text: { color: "#fff", fontWeight: "bold" }
+          },
+          type: "menstruation",
+        };
+      }
       dataAtual.setDate(dataAtual.getDate() + 1);
     }
 
-    // Período fértil
+    futurasMenstruacoes?.forEach(({ inicio, fim }) => {
+      let data = new Date(inicio);
+      const end = new Date(fim);
+      while (data <= end) {
+        const dateStr = data.toISOString().split("T")[0];
+        markedDates[dateStr] = {
+          customStyles: {
+            container: { backgroundColor: "#d6a3e6", borderRadius: 5 },
+            text: { color: "#fff", fontWeight: "bold" }
+          },
+          type: "next-period",
+        };
+        data.setDate(data.getDate() + 1);
+      }
+    });
+
     let fertilStart = new Date(inicioFertilidade);
     while (fertilStart <= new Date(fimFertilidade)) {
       const dataStr = fertilStart.toISOString().split("T")[0];
@@ -70,7 +97,6 @@ export default function CalendarScreen() {
       fertilStart.setDate(fertilStart.getDate() + 1);
     }
 
-    // Ovulação
     const ovulacaoStr = new Date(ovulacao).toISOString().split("T")[0];
     markedDates[ovulacaoStr] = {
       customStyles: {
@@ -79,20 +105,6 @@ export default function CalendarScreen() {
       },
       type: "ovulation",
     };
-
-    // Próxima menstruação
-    let proxMenstruacao = new Date(proximaMenstruacao);
-    for (let i = 0; i < menstruationDuration; i++) {
-      const proxDateStr = proxMenstruacao.toISOString().split("T")[0];
-      markedDates[proxDateStr] = {
-        customStyles: {
-          container: { backgroundColor: "#d6a3e6", borderRadius: 5 },
-          text: { color: "#fff", fontWeight: "bold" }
-        },
-        type: "next-period",
-      };
-      proxMenstruacao.setDate(proxMenstruacao.getDate() + 1);
-    }
   }
 
   if (markedDates[todayStr]) {
@@ -119,7 +131,6 @@ export default function CalendarScreen() {
     <ScrollView style={styles.scrollContainer} contentContainerStyle={{ flexGrow: 1 }}>
       <BackButton />
       <View style={styles.container}>
-        {/* Calendário */}
         <View style={styles.calendarWrapper}>
           <Calendar
             current={todayStr}
@@ -170,7 +181,6 @@ export default function CalendarScreen() {
           />
         </View>
 
-        {/* Informações do dia selecionado */}
         <View style={styles.infoContainer}>
           <View style={styles.infoHeader}>
             <Text style={styles.infoTitle}>{formatarDiaSemana(selectedDate)}</Text>
@@ -207,11 +217,11 @@ export default function CalendarScreen() {
 const styles = StyleSheet.create({
   scrollContainer: {
     flex: 1,
-    backgroundColor: "#f5e9f0"
+    backgroundColor: "#F6E4F6"
   },
   container: {
     flexGrow: 1,
-    backgroundColor: "#f5e9f0",
+    backgroundColor: "#F6E4F6",
     paddingTop: 50
   },
   calendarWrapper: {

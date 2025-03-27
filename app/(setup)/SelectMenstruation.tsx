@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { Calendar } from "react-native-calendars";
 import { useRouter } from "expo-router";
 import { auth, db } from "../../config/firebase";
-import { doc, updateDoc, getDoc, collection, addDoc, Timestamp } from "firebase/firestore";
+import { doc, updateDoc, getDoc, Timestamp } from "firebase/firestore";
 import BackButton from "../../components/BackButton";
 
 function formatToISO(dateStr: string): string {
@@ -20,23 +20,6 @@ export default function SelectMenstruation() {
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth() + 1);
 
   useEffect(() => {
-    const fetchUserCycle = async () => {
-      const user = auth.currentUser;
-      if (user) {
-        const userDoc = await getDoc(doc(db, "usuarios", user.uid));
-        if (userDoc.exists()) {
-          const { menstruationDays } = userDoc.data();
-          if (menstruationDays && menstruationDays.length > 0) {
-            const selected: Record<string, any> = {};
-            menstruationDays.forEach((date: string) => {
-              selected[formatToISO(date)] = { selected: true };
-            });
-            setSelectedDates(selected);
-          }
-        }
-      }
-    };
-    fetchUserCycle();
   }, []);
 
   const handleDaySelect = (day: { dateString: string; month: number }) => {
@@ -67,12 +50,6 @@ export default function SelectMenstruation() {
     const user = auth.currentUser;
     if (user) {
       try {
-        await addDoc(collection(db, "usuarios", user.uid, "ciclosMenstruais"), {
-          menstruationStart: firstDate,
-          menstruationDays: formattedDates,
-          createdAt: Timestamp.now(),
-        });
-
         await updateDoc(doc(db, "usuarios", user.uid), {
           menstruationStart: firstDate,
           menstruationDays: formattedDates,
@@ -142,7 +119,7 @@ export default function SelectMenstruation() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5e9f0",
+    backgroundColor: "#F6E4F6",
     alignItems: "center",
     paddingVertical: 30,
   },

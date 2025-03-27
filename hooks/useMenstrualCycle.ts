@@ -4,7 +4,7 @@ import { auth, db } from "../config/firebase";
 import { doc, getDoc } from "firebase/firestore";
 import { format } from "date-fns";
 
-type CycleData = {
+interface CycleData {
   ultimaMenstruacao: string;
   fimMenstruacao: string;
   proximaMenstruacao: string;
@@ -13,7 +13,10 @@ type CycleData = {
   inicioFertilidade: string;
   fimFertilidade: string;
   menstruationDuration: number;
-};
+  cycleLength: number;
+  futurasMenstruacoes: { inicio: string; fim: string }[];
+  menstruationDaysPassados: string[];
+}
 
 export function useMenstrualCycle() {
   const [cycleInfo, setCycleInfo] = useState<CycleData | null>(null);
@@ -28,10 +31,20 @@ export function useMenstrualCycle() {
       const userDoc = await getDoc(docRef);
 
       if (userDoc.exists()) {
-        const { menstruationStart, menstruationDays, cycleLength, menstruationDuration } = userDoc.data();
+        const {
+          menstruationStart,
+          menstruationDuration,
+          cycleLength,
+          menstruationDays,
+        } = userDoc.data();
 
-        if (menstruationStart && menstruationDays?.length > 0 && menstruationDuration) {
-          calcularCiclo(menstruationStart, menstruationDays, cycleLength || 28, menstruationDuration);
+        if (menstruationStart && menstruationDuration && cycleLength) {
+          calcularCiclo(
+            menstruationStart,
+            menstruationDuration,
+            cycleLength,
+            menstruationDays || []
+          );
         }
       }
     } catch (error) {
@@ -41,34 +54,45 @@ export function useMenstrualCycle() {
 
   function calcularCiclo(
     menstruationStartISO: string,
-    menstruationDays: string[],
-    duracaoCiclo: number,
-    menstruationDuration: number
+    menstruationDuration: number,
+    cycleLength: number,
+    menstruationDaysPassados: string[]
   ) {
     const dataUltimaMenstruacao = new Date(`${menstruationStartISO}T12:00:00`);
-    const dataFimMenstruacao = new Date(`${menstruationDays[menstruationDays.length - 1]}T12:00:00`);
-
-    if (isNaN(dataUltimaMenstruacao.getTime()) || isNaN(dataFimMenstruacao.getTime())) {
-      console.error("Erro: Datas inválidas.");
+    if (isNaN(dataUltimaMenstruacao.getTime())) {
+      console.error("Erro: Data inválida.");
       return;
     }
 
-    // Próxima menstruação
+    const dataFimMenstruacao = new Date(dataUltimaMenstruacao);
+    dataFimMenstruacao.setDate(dataFimMenstruacao.getDate() + menstruationDuration - 1);
+
     const dataProximaMenstruacao = new Date(dataUltimaMenstruacao);
-    dataProximaMenstruacao.setDate(dataUltimaMenstruacao.getDate() + duracaoCiclo);
+    dataProximaMenstruacao.setDate(dataUltimaMenstruacao.getDate() + cycleLength);
 
     const dataProximaFimMenstruacao = new Date(dataProximaMenstruacao);
-    dataProximaFimMenstruacao.setDate(dataProximaMenstruacao.getDate() + menstruationDuration - 1);
+    dataProximaFimMenstruacao.setDate(dataProximaFimMenstruacao.getDate() + menstruationDuration - 1);
 
-    // Ovulação e fertilidade
     const dataOvulacao = new Date(dataUltimaMenstruacao);
-    dataOvulacao.setDate(dataUltimaMenstruacao.getDate() + (duracaoCiclo - 14));
+    dataOvulacao.setDate(dataUltimaMenstruacao.getDate() + (cycleLength - 14));
 
     const dataInicioFertilidade = new Date(dataOvulacao);
     dataInicioFertilidade.setDate(dataOvulacao.getDate() - 5);
 
     const dataFimFertilidade = new Date(dataOvulacao);
     dataFimFertilidade.setDate(dataOvulacao.getDate() + 1);
+
+    const futurasMenstruacoes = [];
+    let proximaInicio = new Date(dataUltimaMenstruacao);
+    for (let i = 0; i < 12; i++) {
+      proximaInicio.setDate(proximaInicio.getDate() + cycleLength);
+      const proximaFim = new Date(proximaInicio);
+      proximaFim.setDate(proximaFim.getDate() + menstruationDuration - 1);
+      futurasMenstruacoes.push({
+        inicio: format(proximaInicio, "yyyy-MM-dd"),
+        fim: format(proximaFim, "yyyy-MM-dd"),
+      });
+    }
 
     setCycleInfo({
       ultimaMenstruacao: format(dataUltimaMenstruacao, "yyyy-MM-dd"),
@@ -79,6 +103,9 @@ export function useMenstrualCycle() {
       inicioFertilidade: format(dataInicioFertilidade, "yyyy-MM-dd"),
       fimFertilidade: format(dataFimFertilidade, "yyyy-MM-dd"),
       menstruationDuration,
+      cycleLength,
+      futurasMenstruacoes,
+      menstruationDaysPassados: menstruationDaysPassados.map((d: string) => format(new Date(`${d}T12:00:00`), "yyyy-MM-dd")),
     });
   }
 
