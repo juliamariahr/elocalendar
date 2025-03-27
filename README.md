@@ -2,11 +2,6 @@
 
 Aplicativo mobile desenvolvido para auxiliar mulheres no acompanhamento do ciclo menstrual, oferecendo previsões de menstruação, ovulação, fertilidade e recursos para registrar sintomas, medicamentos, anotações e muito mais. O app também proporciona uma experiência personalizada com notificações, estatísticas e exportação de dados.
 
-### 🛠 Tecnologias Utilizadas
-
-- **React Native** — Para desenvolvimento multiplataforma (iOS e Android).
-- **Expo** — Para facilitar o desenvolvimento, build e preview do app.
-- **Firebase** — Autenticação segura, banco de dados em tempo real e armazenamento de dados dos usuários.
 ## 📋 Backlog do Projeto
 
 ### Sprint 1
