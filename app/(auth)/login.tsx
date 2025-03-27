@@ -1,54 +1,92 @@
-import { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet } from 'react-native';
+import { useState, useEffect } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
-import { auth, db } from '../../config/firebase';
+import { auth } from '../../config/firebase';
 import { signInWithEmailAndPassword } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
 import BackButton from "../../components/BackButton";
+import { Ionicons } from '@expo/vector-icons';
 
 export default function Login() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
-  // Função de login e verificação de admin
   const handleLogin = async () => {
+    setErrorMessage("");
+
     if (!email || !password) {
-      Alert.alert("Erro", "Preencha todos os campos.");
+      setErrorMessage("Preencha todos os campos.");
       return;
     }
 
     try {
-      // Autentica usuário no Firebase Authentication
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
-
-      // Redireciona todos os usuários para a página home
+      await signInWithEmailAndPassword(auth, email, password);
       router.replace('/home');
-    } catch (error) {
-      Alert.alert("Erro", "E-mail ou senha inválidos.");
+    } catch (error: any) {
+      let customMessage = "E-mail ou senha inválidos.";
+      if (error.code === "auth/user-not-found") {
+        customMessage = "Usuário não encontrado.";
+      } else if (error.code === "auth/wrong-password") {
+        customMessage = "Senha incorreta.";
+      } else if (error.code === "auth/invalid-email") {
+        customMessage = "E-mail inválido.";
+      }
+
+      setErrorMessage(customMessage);
     }
   };
 
+  useEffect(() => {
+    if (errorMessage !== "") {
+      const timeout = setTimeout(() => setErrorMessage(""), 4000);
+      return () => clearTimeout(timeout);
+    }
+  }, [errorMessage]);
+
   return (
     <View style={styles.container}>
-      <BackButton />
+      <BackButton route="/" />
+      
       <Text style={styles.label}>E-mail</Text>
       <TextInput 
         style={styles.input} 
         value={email} 
-        onChangeText={setEmail} 
+        onChangeText={(text) => {
+          setEmail(text);
+          setErrorMessage("");
+        }} 
         keyboardType="email-address" 
         autoCapitalize="none"
+        placeholder="Digite seu e-mail"
       />
 
       <Text style={styles.label}>Senha</Text>
-      <TextInput 
-        style={styles.input} 
-        value={password} 
-        onChangeText={setPassword} 
-        secureTextEntry
-      />
+      <View style={styles.passwordContainer}>
+        <TextInput 
+          style={styles.passwordInput} 
+          value={password} 
+          onChangeText={(text) => {
+            setPassword(text);
+            setErrorMessage("");
+          }} 
+          secureTextEntry={!showPassword}
+          placeholder="Digite sua senha"
+        />
+        <TouchableOpacity
+          style={styles.eyeButton}
+          onPress={() => setShowPassword(!showPassword)}
+        >
+          <Ionicons
+            name={showPassword ? 'eye-off' : 'eye'}
+            size={18} // menor que antes
+            color="#6a3b7d"
+          />
+        </TouchableOpacity>
+      </View>
+
+      {errorMessage !== "" && <Text style={styles.errorText}>{errorMessage}</Text>}
 
       <TouchableOpacity style={styles.button} onPress={handleLogin}>
         <Text style={styles.buttonText}>Login</Text>
@@ -80,6 +118,23 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     fontSize: 16,
   },
+  passwordContainer: {
+    width: '100%',
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    marginBottom: 10,
+  },
+  passwordInput: {
+    flex: 1,
+    fontSize: 16,
+    paddingVertical: 10,
+  },
+  eyeButton: {
+    padding: 4, // menor padding
+  },
   button: {
     backgroundColor: '#a87cb3',
     paddingVertical: 12,
@@ -91,5 +146,12 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  errorText: {
+    color: "#b00020",
+    fontSize: 14,
+    textAlign: "center",
+    marginVertical: 8,
+    fontWeight: "bold",
   },
 });
