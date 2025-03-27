@@ -39,7 +39,6 @@ Aplicativo mobile desenvolvido para auxiliar mulheres no acompanhamento do ciclo
 | Sprint | Prioridade | Tarefas |
 |--------|------------|---------|
 | 3 | Alta | Criar gráficos e estatísticas do ciclo menstrual ao longo do tempo. |
-| 3 | Alta | Implementar previsão de fertilidade baseada nos dados do usuário. |
 | 3 | Média | Criar seção de dicas de saúde e bem-estar relacionadas ao ciclo. |
 | 3 | Alta | Permitir exportação dos dados do ciclo para PDF/CSV. |
 | 3 | Média | Enviar alertas sobre a necessidade de acompanhamento médico em ciclos irregulares. |
