@@ -30,6 +30,7 @@ Aplicativo mobile desenvolvido para auxiliar mulheres no acompanhamento do ciclo
 | 2 | Média | Registrar e acompanhar o fluxo menstrual (leve, moderado, intenso). |
 | 2 | Média | Adicionar notas sobre eventos que afetam o ciclo (ex: estresse, dieta). |
 | 2 | Alta | Personalizar o ciclo menstrual para ciclos irregulares. |
+| 2 | Média | Implementar autenticação biométrica para facilitar o login com impressão digital. |
 
 ---
 
@@ -43,3 +44,54 @@ Aplicativo mobile desenvolvido para auxiliar mulheres no acompanhamento do ciclo
 | 3 | Alta | Permitir exportação dos dados do ciclo para PDF/CSV. |
 | 3 | Média | Enviar alertas sobre a necessidade de acompanhamento médico em ciclos irregulares. |
 | 3 | Média | Permitir personalização da interface (temas e cores). |
+
+<br>
+
+## ▶️ Como rodar
+
+1. **Instalar o Expo CLI (caso ainda não tenha)**:
+   ```bash
+   npm install -g expo-cli
+   ```
+
+2. **Instalar as dependências do projeto**:
+   ```bash
+   npm install
+   ```
+
+3. **Configurar o Firebase**:
+   - Criar um projeto no [console do Firebase](https://console.firebase.google.com)
+   - Ativar **Authentication (email/senha)** e o **Cloud Firestore**
+   - Configurar o arquivo `config/firebase.ts` com a seguinte estrutura:
+
+     ```ts
+      import { initializeApp, getApps, getApp } from "firebase/app";
+      import { getAuth } from "firebase/auth";
+      import { getFirestore } from "firebase/firestore";
+      
+      const firebaseConfig = {
+        apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
+        authDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN,
+        projectId: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID,
+        storageBucket: process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET,
+        messagingSenderId: process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+        appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID,
+      };
+      
+      const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+      
+      const auth = getAuth(app);
+      const db = getFirestore(app);
+      
+      export { auth, db };
+     ```
+
+4. **Rodar o projeto no ambiente de desenvolvimento**:
+   ```bash
+   npx expo start
+   ```
+
+5. **Executar no dispositivo**:
+   - Escaneie o QR Code com o aplicativo **Expo Go** ou
+   - Use um emulador Android/iOS
+
