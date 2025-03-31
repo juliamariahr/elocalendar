@@ -42,7 +42,6 @@ export default function ContraceptiveMethod() {
           cicloConfigurado: true,
         });
 
-        Alert.alert("Sucesso", "Configuração concluída!");
         router.replace("/(protected)/home");
       } catch (error) {
         console.error("Erro ao salvar dados:", error);
