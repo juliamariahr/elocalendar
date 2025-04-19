@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from "react-native";
 import { Calendar } from "react-native-calendars";
 import { useRouter } from "expo-router";
@@ -6,12 +6,109 @@ import { FontAwesome5 } from "@expo/vector-icons";
 import BottomNav from "../../components/BottomNav";
 import BackButton from "../../components/BackButton";
 import { useMenstrualCycle } from "../../hooks/useMenstrualCycle";
+import { auth, db } from "../../config/firebase";
+import { doc, getDoc } from "firebase/firestore";
+import { useFocusEffect } from "@react-navigation/native";
+
+const getLocalDateString = (date: Date) => {
+  const offset = date.getTimezoneOffset();
+  const localDate = new Date(date.getTime() - offset * 60 * 1000);
+  return localDate.toISOString().split("T")[0];
+};
+
+const sintomasMap: Record<string, string> = {
+  dor_cabeca: "Dor de cabeça",
+  enxaqueca: "Enxaqueca",
+  tontura: "Tontura",
+  espinha: "Espinha",
+  dor_pescoco: "Dor no pescoço",
+  dor_ombro: "Dor no ombro",
+  mama_dor: "Mama com dor",
+  mama_dolorida: "Mama dolorida",
+  costas: "Dores nas costas",
+  lombar: "Dores na lombar",
+  corpo: "Dores no corpo",
+  muscular: "Dor muscular",
+  gripe: "Gripe",
+  colica: "Cólica",
+  calafrios: "Calafrios",
+  coceira: "Coceira",
+  calor: "Calor",
+  tpm: "TPM",
+  peso: "Ganho de peso",
+  inchaco: "Inchaço",
+  prisao: "Prisão de ventre",
+  diarreia: "Diarreia",
+  enjoo: "Enjoo",
+  gasoso: "Gases",
+  fome: "Fome",
+  desejo: "Desejo",
+  pelvica: "Dor pélvica",
+  cervical: "Firmeza cervical",
+  abertura: "Abertura cervical",
+  corrimento: "Corrimento",
+  fluxo: "Fluxo alto",
+  manchas: "Manchas",
+  irritacao: "Irritação",
+  seco: "Seco",
+  pegajoso: "Pegajoso",
+  cremoso: "Cremoso",
+  aguado: "Aguado",
+  clara: "Clara de ovo",
+  requeijao: "Requeijão",
+  verde: "Verde",
+  sangue: "Com sangue",
+  cheiro: "Com cheiro",
+  ansiedade: "Ansiedade",
+  insonia: "Insônia",
+  estresse: "Estresse",
+  mau_humor: "Mau humor",
+  tensao: "Tensão",
+  irritabilidade: "Irritabilidade",
+  concentracao: "Sem concentração",
+  fadiga: "Fadiga",
+  confusao: "Confusão"
+};
+
+const humoresMap: Record<string, string> = {
+  feliz: "Feliz",
+  alegre: "Alegre",
+  animada: "Animada",
+  empolgada: "Empolgada",
+  euforica: "Eufórica",
+  confiante: "Confiante",
+  grata: "Grata",
+  satisfeita: "Satisfeita",
+  tranquila: "Tranquila",
+  calma: "Calma",
+  amorosa: "Amorosa",
+  esperancosa: "Esperançosa",
+  sensivel: "Sensível",
+  reflexiva: "Reflexiva",
+  pensativa: "Pensativa",
+  curiosa: "Curiosa",
+  distraida: "Distraída",
+  irritada: "Irritada",
+  ansiosa: "Ansiosa",
+  triste: "Triste",
+  chorosa: "Chorosa",
+  estressada: "Estressada",
+  desanimada: "Desanimada",
+  cansada: "Cansada",
+  agressiva: "Agressiva",
+  tensa: "Tensa",
+  insegura: "Insegura",
+  solitaria: "Solitária",
+  frustrada: "Frustrada"
+};
 
 export default function CalendarScreen() {
   const router = useRouter();
   const [currentDate, setCurrentDate] = useState(new Date());
   const ciclo = useMenstrualCycle();
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split("T")[0]);
+  const [selectedDate, setSelectedDate] = useState(getLocalDateString(new Date()));
+  const [logDetails, setLogDetails] = useState<(string | JSX.Element)[] | null>(null);
+  const [lastTap, setLastTap] = useState<number | null>(null);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -20,15 +117,80 @@ export default function CalendarScreen() {
     return () => clearInterval(interval);
   }, []);
 
+  useFocusEffect(
+    useCallback(() => {
+      const fetchLog = async () => {
+        const user = auth.currentUser;
+        if (!user || !selectedDate) return;
+        const ref = doc(db, "usuarios", user.uid, "cycle_logs", selectedDate);
+        const snap = await getDoc(ref);
+        if (snap.exists()) {
+          const data = snap.data();
+          const detalhes: (string | JSX.Element)[] = [];
+
+          if (typeof data.fluxo === "number") {
+            const intensidade =
+              data.fluxo <= 2 ? "Leve" : data.fluxo === 3 ? "Moderado" : "Intenso";
+            const icones = [];
+            for (let i = 0; i < data.fluxo; i++) {
+              icones.push(
+                <FontAwesome5
+                  key={i}
+                  name="tint"
+                  size={14}
+                  color="#B82132"
+                  style={{ marginRight: 2 }}
+                />
+              );
+            }
+            detalhes.push(
+              <Text key="fluxo" style={{ flexDirection: "row", marginTop: 8 }}>
+                <Text style={{ fontWeight: "bold" }}>Fluxo Menstrual:{"\n"}</Text>
+                {icones}
+                <Text> {intensidade}</Text>
+              </Text>
+            );
+          }
+
+          if (data.nota) detalhes.push(`📝 Notas:\n${data.nota}`);
+
+          if (data.sintomas?.length) {
+            const nomes = data.sintomas.map((id: string) => sintomasMap[id] || id);
+            detalhes.push(`🤒 Sintomas:\n${nomes.join(", ")}`);
+          }
+
+          if (data.humores?.length) {
+            const nomes = data.humores.map((id: string) => humoresMap[id] || id);
+            detalhes.push(`😊 Humores:\n${nomes.join(", ")}`);
+          }
+
+          if (data.atividadeSexual) {
+            const sexo = data.atividadeSexual;
+            const sexoInfo = [
+              sexo.pratica ? "✔️ Praticou" : "🚫 Não praticou",
+              sexo.preservativo ? "🛡️ Protegido" : "⚠️ Sem proteção",
+              sexo.orgasmo ? "🥳 Teve orgasmo" : "😕 Sem orgasmo",
+              `❤️ ${sexo.vezes} vez(es)`
+            ];
+            detalhes.push(`💌 Atividade Sexual:\n${sexoInfo.join("\n")}`);
+          }
+
+          setLogDetails(detalhes);
+        } else {
+          setLogDetails(null);
+        }
+      };
+
+      fetchLog();
+    }, [selectedDate])
+  );
+
   const formatarDiaSemana = (dateString: string) => {
-    const date = new Date(dateString);
+    const date = new Date(dateString + "T00:00:00");
     return date.toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" });
   };
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const todayStr = today.toISOString().split("T")[0];
-
+  const todayStr = getLocalDateString(new Date());
   const markedDates: Record<string, any> = {};
 
   if (ciclo) {
@@ -38,7 +200,6 @@ export default function CalendarScreen() {
       ovulacao,
       inicioFertilidade,
       fimFertilidade,
-      menstruationDuration,
       futurasMenstruacoes,
       menstruationDaysPassados
     } = ciclo;
@@ -55,7 +216,7 @@ export default function CalendarScreen() {
 
     let dataAtual = new Date(ultimaMenstruacao);
     while (dataAtual <= new Date(fimMenstruacao)) {
-      const dataStr = dataAtual.toISOString().split("T")[0];
+      const dataStr = getLocalDateString(dataAtual);
       if (!markedDates[dataStr]) {
         markedDates[dataStr] = {
           customStyles: {
@@ -72,7 +233,7 @@ export default function CalendarScreen() {
       let data = new Date(inicio);
       const end = new Date(fim);
       while (data <= end) {
-        const dateStr = data.toISOString().split("T")[0];
+        const dateStr = getLocalDateString(data);
         markedDates[dateStr] = {
           customStyles: {
             container: { backgroundColor: "#d6a3e6", borderRadius: 5 },
@@ -86,7 +247,7 @@ export default function CalendarScreen() {
 
     let fertilStart = new Date(inicioFertilidade);
     while (fertilStart <= new Date(fimFertilidade)) {
-      const dataStr = fertilStart.toISOString().split("T")[0];
+      const dataStr = getLocalDateString(fertilStart);
       markedDates[dataStr] = {
         customStyles: {
           container: { backgroundColor: "#ffeb99", borderRadius: 5 },
@@ -97,7 +258,7 @@ export default function CalendarScreen() {
       fertilStart.setDate(fertilStart.getDate() + 1);
     }
 
-    const ovulacaoStr = new Date(ovulacao).toISOString().split("T")[0];
+    const ovulacaoStr = getLocalDateString(new Date(ovulacao));
     markedDates[ovulacaoStr] = {
       customStyles: {
         container: { backgroundColor: "#ffcc99", borderRadius: 5 },
@@ -124,13 +285,21 @@ export default function CalendarScreen() {
   }
 
   const handleDayPress = (day: { dateString: string }) => {
-    setSelectedDate(day.dateString);
+    const now = Date.now();
+    const DOUBLE_PRESS_DELAY = 300;
+
+    if (selectedDate === day.dateString && lastTap && now - lastTap < DOUBLE_PRESS_DELAY) {
+      router.push({ pathname: "/(protected)/EditCycle", params: { date: day.dateString } });
+    } else {
+      setSelectedDate(day.dateString);
+      setLastTap(now);
+    }
   };
 
   return (
-    <ScrollView style={styles.scrollContainer} contentContainerStyle={{ flexGrow: 1 }}>
+    <View style={styles.container}>
       <BackButton route="/home" />
-      <View style={styles.container}>
+      <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.calendarWrapper}>
           <Calendar
             current={todayStr}
@@ -184,7 +353,10 @@ export default function CalendarScreen() {
         <View style={styles.infoContainer}>
           <View style={styles.infoHeader}>
             <Text style={styles.infoTitle}>{formatarDiaSemana(selectedDate)}</Text>
-            <TouchableOpacity style={styles.editButton}>
+            <TouchableOpacity
+              style={styles.editButton}
+              onPress={() => router.push({ pathname: "/(protected)/EditCycle", params: { date: selectedDate } })}
+            >
               <Text style={styles.editButtonText}>Editar</Text>
             </TouchableOpacity>
           </View>
@@ -206,49 +378,61 @@ export default function CalendarScreen() {
               ? "Alta - Probabilidade de engravidar"
               : "Baixa - Fora do período fértil"}
           </Text>
-          <Text style={styles.infoNotes}>(Anotações)</Text>
+
+          {logDetails ? (
+            Array.isArray(logDetails) ? (
+              logDetails.map((det, idx) => (
+                <Text key={idx} style={styles.infoNotes}>
+                  {det}
+                </Text>
+              ))
+            ) : (
+              <Text style={styles.infoNotes}>{logDetails}</Text>
+            )
+          ) : (
+            <Text style={styles.infoNotes}>Nenhuma anotação para esse dia.</Text>
+          )}
         </View>
-        <BottomNav />
-      </View>
-    </ScrollView>
+      </ScrollView>
+      <BottomNav />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  scrollContainer: {
-    flex: 1,
-    backgroundColor: "#F6E4F6"
-  },
   container: {
-    flexGrow: 1,
+    flex: 1,
     backgroundColor: "#F6E4F6",
-    paddingTop: 50
+    paddingTop: 50,
+  },
+  scrollContent: {
+    paddingBottom: 100,
   },
   calendarWrapper: {
     backgroundColor: "#fff",
     borderRadius: 10,
     marginHorizontal: 15,
-    padding: 10
+    padding: 10,
   },
   dayContainer: {
     width: 40,
     height: 40,
     justifyContent: "center",
     alignItems: "center",
-    borderRadius: 5
+    borderRadius: 5,
   },
   dayText: {
     fontSize: 16,
-    fontWeight: "bold"
+    fontWeight: "bold",
   },
   icon: {
-    marginTop: 3
+    marginTop: 3,
   },
   disabledDay: {
-    opacity: 0.3
+    opacity: 0.3,
   },
   disabledDayText: {
-    color: "#ccc"
+    color: "#ccc",
   },
   infoContainer: {
     backgroundColor: "#fff",
@@ -256,43 +440,44 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     elevation: 3,
     marginHorizontal: 15,
-    marginTop: 15
+    marginTop: 15,
   },
   infoHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "center"
+    alignItems: "center",
   },
   infoTitle: {
     fontSize: 18,
     fontWeight: "bold",
-    color: "#6a3b7d"
+    color: "#6a3b7d",
   },
   editButton: {
     backgroundColor: "#a87cb3",
     paddingVertical: 6,
     paddingHorizontal: 15,
-    borderRadius: 15
+    borderRadius: 15,
   },
   editButtonText: {
     color: "#fff",
     fontSize: 14,
-    fontWeight: "bold"
+    fontWeight: "bold",
   },
   infoSubText: {
     fontSize: 14,
     color: "#6a3b7d",
-    marginTop: 5
+    marginTop: 5,
   },
   infoDescription: {
     fontSize: 14,
     fontWeight: "bold",
     color: "#333",
-    marginTop: 5
+    marginTop: 5,
   },
   infoNotes: {
-    fontSize: 12,
-    color: "#666",
-    marginTop: 5
+    fontSize: 13,
+    color: "#555",
+    marginTop: 10,
+    lineHeight: 18,
   },
 });

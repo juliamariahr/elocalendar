@@ -4,14 +4,22 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter, type Router } from "expo-router";
 
 type BackButtonProps = {
-  route: Parameters<Router["push"]>[0];
+  route?: Parameters<Router["push"]>[0];
 };
 
 export default function BackButton({ route }: BackButtonProps) {
   const router = useRouter();
 
+  const handlePress = () => {
+    if (route) {
+      router.push(route);
+    } else {
+      router.back();
+    }
+  };
+
   return (
-    <TouchableOpacity style={styles.button} onPress={() => router.push(route)}>
+    <TouchableOpacity style={styles.button} onPress={handlePress}>
       <Ionicons name="arrow-back" size={24} color="#6a3b7d" />
     </TouchableOpacity>
   );

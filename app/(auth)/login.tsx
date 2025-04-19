@@ -80,7 +80,7 @@ export default function Login() {
         >
           <Ionicons
             name={showPassword ? 'eye-off' : 'eye'}
-            size={18} // menor que antes
+            size={18}
             color="#6a3b7d"
           />
         </TouchableOpacity>
@@ -133,7 +133,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   eyeButton: {
-    padding: 4, // menor padding
+    padding: 4,
   },
   button: {
     backgroundColor: '#a87cb3',
