@@ -22,11 +22,11 @@ const sintomasDisponiveis = [
 ];
 
 const humoresDisponiveis = [
-  { id: "feliz", label: "Feliz", icon: "smile" },
-  { id: "triste", label: "Triste", icon: "frown" },
-  { id: "irritada", label: "Irritada", icon: "angry" },
-  { id: "ansiosa", label: "Ansiosa", icon: "meh" },
-  { id: "estressada", label: "Estressada", icon: "flushed" },
+  { id: "feliz", label: "Felicidade", icon: "smile" },
+  { id: "triste", label: "Tristeza", icon: "frown" },
+  { id: "irritado", label: "Irritação", icon: "angry" },
+  { id: "ansioso", label: "Ansiedade", icon: "meh" },
+  { id: "estressado", label: "Estresse", icon: "flushed" },
 ];
 
 const fluxoOptions = [
@@ -255,16 +255,16 @@ export default function EditCycleLog() {
           </TouchableOpacity>
         </View>
         <View style={[styles.row, { flexWrap: "wrap", justifyContent: "space-between" }]}>
-          {( [
-            { campo: "Não Pratiquei", icon: "heart", label: "Pratiquei", invertido: true },
-            { campo: "preservativo", icon: "shield-heart", label: "Proteção" },
-            { campo: "orgasmo", icon: "grin-hearts", label: "Orgasmo" }
+          {([
+            { campo: "pratica", icon: "heart", label: "Não praticou", ativoLabel: "Praticou" },
+            { campo: "preservativo", icon: "shield-heart", label: "Sem proteção", ativoLabel: "Protegido" },
+            { campo: "orgasmo", icon: "grin-hearts", label: "Sem orgasmo", ativoLabel: "Teve orgasmo" }
           ] as {
             campo: keyof typeof atividadeSexual;
             icon: string;
             label: string;
-            invertido?: boolean;
-          }[] ).map(({ campo, icon, label, invertido }) => {
+            ativoLabel: string;
+          }[]).map(({ campo, icon, label, ativoLabel }) => {
             const ativo = atividadeSexual[campo];
             return (
               <TouchableOpacity key={campo} style={styles.iconWrapper} onPress={() => toggleAtividade(campo)}>
@@ -272,16 +272,17 @@ export default function EditCycleLog() {
                   <FontAwesome6
                     name={icon as any}
                     size={24}
-                    color={invertido ? !ativo ? "#a87cb3" : "#ccc" : ativo ? "#a87cb3" : "#ccc"}
-                    solid={invertido ? !ativo : ativo}
+                    solid={ativo}
+                    color={ativo ? "#a87cb3" : "#ccc"}
                   />
                 </View>
                 <Text style={styles.iconeLabel}>
-                  {invertido ? !ativo ? label : "Não Praticou" : ativo ? label : `Sem ${label.toLowerCase()}`}
+                  {ativo ? ativoLabel : label}
                 </Text>
               </TouchableOpacity>
             );
           })}
+
           <TouchableOpacity style={styles.iconWrapper} onPress={() => toggleAtividade("vezes")}>
             <View style={styles.iconCircle}>
               <Text style={{ fontSize: 18, fontWeight: "bold", color: "#a87cb3" }}>

@@ -16,11 +16,13 @@ export default function SexualActivityScreen() {
   const { date } = useLocalSearchParams<{ date: string }>();
   const router = useRouter();
 
+  const [pratica, setPratica] = useState<"sim" | "nao" | null>(null);
   const [preservativo, setPreservativo] = useState<"sim" | "nao" | null>(null);
   const [orgasmo, setOrgasmo] = useState<"sim" | "nao" | null>(null);
   const [vezes, setVezes] = useState(1);
 
   const salvarDados = async (
+    novoPratica = pratica,
     novoPreservativo = preservativo,
     novoOrgasmo = orgasmo,
     novoVezes = vezes
@@ -33,8 +35,9 @@ export default function SexualActivityScreen() {
       ref,
       {
         atividadeSexual: {
-          preservativo: novoPreservativo,
-          orgasmo: novoOrgasmo,
+          pratica: novoPratica === "sim",
+          preservativo: novoPreservativo === "sim",
+          orgasmo: novoOrgasmo === "sim",
           vezes: novoVezes,
         },
         updatedAt: new Date().toISOString(),
@@ -52,8 +55,9 @@ export default function SexualActivityScreen() {
       if (snap.exists()) {
         const data = snap.data();
         if (data.atividadeSexual) {
-          setPreservativo(data.atividadeSexual.preservativo ?? null);
-          setOrgasmo(data.atividadeSexual.orgasmo ?? null);
+          setPratica(data.atividadeSexual.pratica ? "sim" : "nao");
+          setPreservativo(data.atividadeSexual.preservativo ? "sim" : "nao");
+          setOrgasmo(data.atividadeSexual.orgasmo ? "sim" : "nao");
           setVezes(data.atividadeSexual.vezes ?? 1);
         }
       }
@@ -61,25 +65,82 @@ export default function SexualActivityScreen() {
     carregarDados();
   }, [date]);
 
+  const alterarPratica = (valor: "sim" | "nao") => {
+    setPratica(valor);
+    salvarDados(valor, preservativo, orgasmo, vezes);
+  };
+
   const alterarPreservativo = (valor: "sim" | "nao") => {
     setPreservativo(valor);
-    salvarDados(valor, orgasmo, vezes);
+    salvarDados(pratica, valor, orgasmo, vezes);
   };
 
   const alterarOrgasmo = (valor: "sim" | "nao") => {
     setOrgasmo(valor);
-    salvarDados(preservativo, valor, vezes);
+    salvarDados(pratica, preservativo, valor, vezes);
   };
 
   const alterarVezes = (novo: number) => {
-    setVezes(novo);
-    salvarDados(preservativo, orgasmo, novo);
+    const vezesLimitado = Math.min(10, Math.max(1, novo));
+    setVezes(vezesLimitado);
+    salvarDados(pratica, preservativo, orgasmo, vezesLimitado);
   };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <BackButton />
       <Text style={styles.title}>Relação Sexual</Text>
+
+      {/* Praticou ou Não Praticou */}
+      <View style={styles.card}>
+        <Text style={styles.subtitle}>Atividade Sexual</Text>
+        <View style={styles.row}>
+          <TouchableOpacity
+            onPress={() => alterarPratica("sim")}
+            style={[
+              styles.iconBox,
+              pratica === "sim" && styles.selectedBox,
+            ]}
+          >
+            <FontAwesome6
+              name="heart"
+              size={24}
+              solid
+              color={pratica === "sim" ? "#fff" : "#6a3b7d"}
+            />
+            <Text
+              style={[
+                styles.iconLabel,
+                pratica === "sim" && { color: "#fff" },
+              ]}
+            >
+              Praticou
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => alterarPratica("nao")}
+            style={[
+              styles.iconBox,
+              pratica === "nao" && styles.selectedBox,
+            ]}
+          >
+            <FontAwesome6
+              name="ban"
+              size={24}
+              color={pratica === "nao" ? "#fff" : "#6a3b7d"}
+            />
+            <Text
+              style={[
+                styles.iconLabel,
+                pratica === "nao" && { color: "#fff" },
+              ]}
+            >
+              Não praticou
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
 
       {/* Preservativo */}
       <View style={styles.card}>
@@ -188,7 +249,7 @@ export default function SexualActivityScreen() {
         <Text style={styles.subtitle}>Número de vezes</Text>
         <View style={[styles.row, { justifyContent: "center" }]}>
           <TouchableOpacity
-            onPress={() => alterarVezes(Math.max(1, vezes - 1))}
+            onPress={() => alterarVezes(vezes - 1)}
             style={styles.counterButton}
           >
             <Text style={styles.counterText}>-</Text>
@@ -247,6 +308,7 @@ const styles = StyleSheet.create({
   },
   selectedBox: {
     backgroundColor: "#a87cb3",
+    borderRadius: 8,
   },
   iconLabel: {
     marginTop: 5,
