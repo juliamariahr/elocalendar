@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from "react-native";
 import { Calendar } from "react-native-calendars";
 import { useRouter } from "expo-router";
@@ -71,35 +71,35 @@ const sintomasMap: Record<string, string> = {
 };
 
 const humoresMap: Record<string, string> = {
-  feliz: "Feliz",
-  alegre: "Alegre",
-  animada: "Animada",
-  empolgada: "Empolgada",
-  euforica: "Eufórica",
-  confiante: "Confiante",
-  grata: "Grata",
-  satisfeita: "Satisfeita",
-  tranquila: "Tranquila",
-  calma: "Calma",
-  amorosa: "Amorosa",
-  esperancosa: "Esperançosa",
-  sensivel: "Sensível",
-  reflexiva: "Reflexiva",
-  pensativa: "Pensativa",
-  curiosa: "Curiosa",
-  distraida: "Distraída",
-  irritada: "Irritada",
-  ansiosa: "Ansiosa",
-  triste: "Triste",
-  chorosa: "Chorosa",
-  estressada: "Estressada",
-  desanimada: "Desanimada",
-  cansada: "Cansada",
-  agressiva: "Agressiva",
-  tensa: "Tensa",
-  insegura: "Insegura",
-  solitaria: "Solitária",
-  frustrada: "Frustrada"
+  feliz: "Felicidade",
+  alegre: "Alegria",
+  animado: "Animação",
+  empolgado: "Empolgação",
+  euforico: "Euforia",
+  confiante: "Confiança",
+  grato: "Gratidão",
+  satisfeito: "Satisfação",
+  tranquilo: "Tranquilidade",
+  calmo: "Calma",
+  amoroso: "Amor",
+  esperancoso: "Esperança",
+  sensivel: "Sensibilidade",
+  reflexivo: "Reflexão",
+  pensativo: "Pensamento",
+  curioso: "Curiosidade",
+  distraido: "Distração",
+  irritado: "Irritação",
+  ansioso: "Ansiedade",
+  triste: "Tristeza",
+  choroso: "Choro",
+  estressado: "Estresse",
+  desanimado: "Desânimo",
+  cansado: "Cansaço",
+  agressivo: "Agressividade",
+  tenso: "Tensão",
+  inseguro: "Insegurança",
+  solitario: "Solidão",
+  frustrado: "Frustração"
 };
 
 export default function CalendarScreen() {
@@ -109,6 +109,7 @@ export default function CalendarScreen() {
   const [selectedDate, setSelectedDate] = useState(getLocalDateString(new Date()));
   const [logDetails, setLogDetails] = useState<(string | JSX.Element)[] | null>(null);
   const [lastTap, setLastTap] = useState<number | null>(null);
+  const tapTimeout = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -287,13 +288,27 @@ export default function CalendarScreen() {
   const handleDayPress = (day: { dateString: string }) => {
     const now = Date.now();
     const DOUBLE_PRESS_DELAY = 300;
-
-    if (selectedDate === day.dateString && lastTap && now - lastTap < DOUBLE_PRESS_DELAY) {
-      router.push({ pathname: "/(protected)/EditCycle", params: { date: day.dateString } });
-    } else {
-      setSelectedDate(day.dateString);
-      setLastTap(now);
+    const LONG_PRESS_DELAY = 500;
+  
+    if (tapTimeout.current) {
+      clearTimeout(tapTimeout.current);
     }
+  
+    if (lastTap && now - lastTap < DOUBLE_PRESS_DELAY && selectedDate === day.dateString) {
+      router.push({ pathname: "/(protected)/EditCycle", params: { date: day.dateString } });
+      setLastTap(null);
+      return;
+    }
+  
+    setSelectedDate(day.dateString);
+    setLastTap(now);
+  
+    tapTimeout.current = setTimeout(() => {
+      if (selectedDate === day.dateString) {
+        router.push({ pathname: "/(protected)/EditCycle", params: { date: day.dateString } });
+        setLastTap(null);
+      }
+    }, LONG_PRESS_DELAY);
   };
 
   return (
