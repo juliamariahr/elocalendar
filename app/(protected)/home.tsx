@@ -43,7 +43,11 @@ export default function Home() {
   const ultimaMenstruacao = new Date(`${ciclo.ultimaMenstruacao}T12:00:00`);
   const diff = hoje.getTime() - ultimaMenstruacao.getTime();
   const diaDoCiclo = diff >= 0 ? Math.floor(diff / (1000 * 60 * 60 * 24)) + 1 : null;
-  
+
+  const diasParaMenstruar = ciclo.proximaMenstruacao
+    ? Math.round((new Date(ciclo.proximaMenstruacao).getTime() - hoje.getTime()) / (1000 * 60 * 60 * 24))
+    : null;
+
   let faseAtual = "Fora do período fértil";
   let probabilidadeGravidez = "Baixa";
 
@@ -71,12 +75,17 @@ export default function Home() {
       {/* Informações do Ciclo */}
       <TouchableOpacity style={styles.cycleInfoContainer} onPress={abrirCalendario}>
         <Text style={styles.countdown}>
-          {ciclo.proximaMenstruacao ? `Faltam ${Math.round(
-            (new Date(ciclo.proximaMenstruacao).getTime() - hoje.getTime()) / (1000 * 60 * 60 * 24)
-          )} Dias` : "Carregando..."}
+          {diasParaMenstruar !== null ? (() => {
+            const plural = Math.abs(diasParaMenstruar) === 1 ? "dia" : "dias";
+            return diasParaMenstruar >= 0
+              ? `Faltam ${diasParaMenstruar} ${plural}`
+              : `${Math.abs(diasParaMenstruar)} ${plural} em atraso`;
+          })() : "Carregando..."}
         </Text>
         <Text style={styles.subtext}>
-          {formatarData(ciclo.proximaMenstruacao)} - Próxima Menstruação
+          {diasParaMenstruar !== null && diasParaMenstruar < 0
+            ? "Menstruação atrasada"
+            : `${formatarData(ciclo.proximaMenstruacao)} - Próxima Menstruação`}
         </Text>
         {ciclo.fimMenstruacao && (
           <Text style={styles.fimMenstruacaoText}>
