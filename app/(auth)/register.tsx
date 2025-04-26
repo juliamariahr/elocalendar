@@ -4,6 +4,7 @@ import { useRouter } from "expo-router";
 import { auth, db } from "../../config/firebase";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
+import { Ionicons } from "@expo/vector-icons";
 
 export default function Register() {
   const router = useRouter();
@@ -12,10 +13,24 @@ export default function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
+  const validarSenhas = (senha: string, confirmarSenha: string) => {
+    if (!senha || !confirmarSenha) {
+      setErrorMessage("");
+      return;
+    }
+    if (senha !== confirmarSenha) {
+      setErrorMessage("As senhas não coincidem.");
+    } else {
+      setErrorMessage("");
+    }
+  };
+
   const handleRegister = async () => {
-    setErrorMessage("")
+    setErrorMessage("");
 
     if (!name || !birthdate || !email || !password || !confirmPassword) {
       setErrorMessage("Preencha todos os campos.");
@@ -72,7 +87,12 @@ export default function Register() {
   return (
     <View style={styles.container}>
       <Text style={styles.label}>Nome</Text>
-      <TextInput style={styles.input} value={name} onChangeText={setName} placeholder="Digite seu nome" />
+      <TextInput
+        style={styles.input}
+        value={name}
+        onChangeText={setName}
+        placeholder="Digite seu nome"
+      />
 
       <Text style={styles.label}>Data de Nascimento</Text>
       <TextInput
@@ -91,19 +111,56 @@ export default function Register() {
         onChangeText={setEmail}
         placeholder="Digite seu e-mail"
         keyboardType="email-address"
+        autoCapitalize="none"
       />
 
       <Text style={styles.label}>Senha</Text>
-      <TextInput style={styles.input} value={password} onChangeText={setPassword} placeholder="Crie uma senha" secureTextEntry />
+      <View style={styles.passwordContainer}>
+        <TextInput
+          style={styles.passwordInput}
+          value={password}
+          onChangeText={(text) => {
+            setPassword(text);
+            validarSenhas(text, confirmPassword);
+          }}
+          secureTextEntry={!showPassword}
+          placeholder="Crie uma senha"
+        />
+        <TouchableOpacity
+          style={styles.eyeButton}
+          onPress={() => setShowPassword(!showPassword)}
+        >
+          <Ionicons
+            name={showPassword ? 'eye-off' : 'eye'}
+            size={18}
+            color="#6a3b7d"
+          />
+        </TouchableOpacity>
+      </View>
 
       <Text style={styles.label}>Confirmar senha</Text>
-      <TextInput
-        style={styles.input}
-        value={confirmPassword}
-        onChangeText={setConfirmPassword}
-        placeholder="Confirme sua senha"
-        secureTextEntry
-      />
+      <View style={styles.passwordContainer}>
+        <TextInput
+          style={styles.passwordInput}
+          value={confirmPassword}
+          onChangeText={(text) => {
+            setConfirmPassword(text);
+            validarSenhas(password, text);
+          }}
+          secureTextEntry={!showConfirmPassword}
+          placeholder="Confirme sua senha"
+        />
+        <TouchableOpacity
+          style={styles.eyeButton}
+          onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+        >
+          <Ionicons
+            name={showConfirmPassword ? 'eye-off' : 'eye'}
+            size={18}
+            color="#6a3b7d"
+          />
+        </TouchableOpacity>
+      </View>
 
       {errorMessage !== "" && <Text style={styles.errorText}>{errorMessage}</Text>}
 
@@ -136,6 +193,23 @@ const styles = StyleSheet.create({
     padding: 10,
     marginBottom: 10,
     fontSize: 16,
+  },
+  passwordContainer: {
+    width: "100%",
+    backgroundColor: "#fff",
+    borderRadius: 20,
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 10,
+    marginBottom: 10,
+  },
+  passwordInput: {
+    flex: 1,
+    fontSize: 16,
+    paddingVertical: 10,
+  },
+  eyeButton: {
+    padding: 4,
   },
   button: {
     backgroundColor: "#a87cb3",
