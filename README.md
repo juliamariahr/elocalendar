@@ -1,6 +1,6 @@
 ## 📱 Elo Calendário Menstrual
 
-Aplicativo mobile desenvolvido para auxiliar mulheres no acompanhamento do ciclo menstrual, oferecendo previsões de menstruação, ovulação, fertilidade e recursos para registrar sintomas, medicamentos, anotações e muito mais. O app também proporciona uma experiência personalizada com notificações, estatísticas e exportação de dados.
+Aplicativo mobile desenvolvido para auxiliar pessoas que menstruam no acompanhamento do ciclo menstrual, oferecendo previsões de menstruação, ovulação, fertilidade e recursos para registrar sintomas, medicamentos, anotações e muito mais. O app também proporciona uma experiência personalizada com notificações, estatísticas e exportação de dados.
 
 ## 📋 Backlog do Projeto
 
@@ -59,7 +59,20 @@ Aplicativo mobile desenvolvido para auxiliar mulheres no acompanhamento do ciclo
    npm install
    ```
 
-3. **Configurar o Firebase**:
+3. **Configurar o arquivo .env**:
+   - Crie um arquivo .env na raiz do projeto (ou dentro da pasta assets, conforme configuração do seu projeto).
+   - Preencha com as seguintes variáveis:
+      ```bash
+      EXPO_PUBLIC_FIREBASE_API_KEY=your_firebase_api_key
+      EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN=your_firebase_auth_domain
+      EXPO_PUBLIC_FIREBASE_PROJECT_ID=your_firebase_project_id
+      EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET=your_firebase_storage_bucket
+      EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_firebase_messaging_sender_id
+      EXPO_PUBLIC_FIREBASE_APP_ID=your_firebase_app_id
+      ```
+   - Substitua `your_firebase_` pelos valores correspondentes do seu projeto no console do Firebase.
+
+5. **Configurar o Firebase**:
    - Criar um projeto no [console do Firebase](https://console.firebase.google.com)
    - Ativar **Authentication (email/senha)** e o **Cloud Firestore**
    - Configurar o arquivo `config/firebase.ts` com a seguinte estrutura:
@@ -86,7 +99,7 @@ Aplicativo mobile desenvolvido para auxiliar mulheres no acompanhamento do ciclo
       export { auth, db };
      ```
 
-4. **Rodar o projeto no ambiente de desenvolvimento**:
+6. **Rodar o projeto no ambiente de desenvolvimento**:
    ```bash
    npx expo start
    ```
