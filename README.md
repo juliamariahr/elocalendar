@@ -60,7 +60,7 @@ Aplicativo mobile desenvolvido para auxiliar pessoas que menstruam no acompanham
    ```
 
 3. **Configurar o arquivo .env**:
-   - Crie um arquivo .env na raiz do projeto (ou dentro da pasta assets, conforme configuração do seu projeto).
+   - Crie um arquivo .env na raiz do projeto.
    - Preencha com as seguintes variáveis:
       ```bash
       EXPO_PUBLIC_FIREBASE_API_KEY=your_firebase_api_key
