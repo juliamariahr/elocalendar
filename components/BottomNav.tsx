@@ -27,8 +27,8 @@ export default function BottomNav() {
       <TouchableOpacity>
         <Ionicons name="bar-chart-outline" size={28} color="#fff" />
       </TouchableOpacity>
-      <TouchableOpacity onPress={() => router.push('/settings')}>
-        <Ionicons name="settings-outline" size={28} color="#fff" />
+      <TouchableOpacity onPress={() => router.push('/profile')}>
+        <Ionicons name="person-outline" size={28} color="#fff" />
       </TouchableOpacity>
     </View>
   );
