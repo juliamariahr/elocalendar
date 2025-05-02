@@ -16,51 +16,66 @@ function formatToISO(dateStr: string): string {
 
 export default function SelectMenstruation() {
   const router = useRouter();
-  const [selectedDates, setSelectedDates] = useState<Record<string, any>>({});
+  const [selectedDates, setSelectedDates] = useState<Record<string, boolean>>({});
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth() + 1);
 
   useEffect(() => {
+    const today = new Date();
+    setCurrentMonth(today.getMonth() + 1);
   }, []);
 
-  const handleDaySelect = (day: { dateString: string; month: number }) => {
-    if (day.month !== currentMonth) return;
+  useEffect(() => {
+    const fetchExistingDates = async () => {
+      const user = auth.currentUser;
+      if (!user) return;
 
+      const ref = doc(db, "usuarios", user.uid);
+      const snap = await getDoc(ref);
+      const data = snap.data();
+
+      if (data?.menstruationDays?.length) {
+        const restored: Record<string, boolean> = {};
+        data.menstruationDays.forEach((date: string) => {
+          restored[date] = true;
+        });
+        setSelectedDates(restored);
+      }
+    };
+
+    fetchExistingDates();
+  }, []);
+
+  const handleDaySelect = (day: { dateString: string }) => {
     const date = day.dateString;
-    const newSelection = { ...selectedDates };
-
-    if (newSelection[date]) {
-      delete newSelection[date];
-    } else {
-      newSelection[date] = { selected: true };
-    }
-
-    setSelectedDates(newSelection);
+    setSelectedDates((prev) => {
+      const updated = { ...prev };
+      if (updated[date]) {
+        delete updated[date];
+      } else {
+        updated[date] = true;
+      }
+      return updated;
+    });
   };
 
   const handleConfirm = async () => {
     const orderedDates = Object.keys(selectedDates).sort();
-    if (orderedDates.length === 0) {
-      alert("Selecione ao menos um dia para continuar.");
-      return;
-    }
-
-    const formattedDates = orderedDates.map(formatToISO);
-    const firstDate = formattedDates[0];
+    const firstDate = orderedDates[0] || null;
 
     const user = auth.currentUser;
-    if (user) {
-      try {
-        await updateDoc(doc(db, "usuarios", user.uid), {
-          menstruationStart: firstDate,
-          menstruationDays: formattedDates,
-          updatedAt: Timestamp.now(),
-        });
+    if (!user) return;
 
-        router.push({ pathname: "/calendar", params: { refetch: "true" } });
-      } catch (error) {
-        console.error("Erro ao salvar:", error);
-        alert("Erro ao salvar os dados. Tente novamente.");
-      }
+    try {
+      await updateDoc(doc(db, "usuarios", user.uid), {
+        menstruationStart: firstDate,
+        menstruationDays: orderedDates,
+        updatedAt: Timestamp.now(),
+      });
+
+      router.push({ pathname: "/calendar", params: { refetch: "true" } });
+    } catch (error) {
+      console.error("Erro ao salvar:", error);
+      alert("Erro ao salvar os dados. Tente novamente.");
     }
   };
 
@@ -72,9 +87,19 @@ export default function SelectMenstruation() {
       <View style={styles.calendarWrapper}>
         <Calendar
           onDayPress={handleDaySelect}
-          onMonthChange={(month: { month: number }) => setCurrentMonth(month.month)}
-          markedDates={selectedDates}
+          onMonthChange={({ month }: { month: number }) => setCurrentMonth(month)}
           markingType={"custom"}
+          markedDates={Object.fromEntries(
+            Object.entries(selectedDates).map(([date]) => [
+              date,
+              {
+                customStyles: {
+                  container: { backgroundColor: "#a87cb3", borderRadius: 5 },
+                  text: { color: "#fff", fontWeight: "bold" },
+                },
+              },
+            ])
+          )}
           theme={{
             backgroundColor: "#f5e9f0",
             calendarBackground: "#fff",
@@ -85,8 +110,8 @@ export default function SelectMenstruation() {
           }}
           style={styles.calendar}
           dayComponent={({ date }: { date: { dateString: string; day: number; month: number } }) => {
-            const dateString = date?.dateString;
             const isOutOfMonth = date?.month !== currentMonth;
+            const isSelected = selectedDates[date.dateString];
 
             return (
               <TouchableOpacity onPress={() => handleDaySelect(date)} disabled={isOutOfMonth}>
@@ -98,7 +123,7 @@ export default function SelectMenstruation() {
                     <View
                       style={[
                         styles.selectionIndicator,
-                        selectedDates[dateString] ? styles.selectedIndicator : styles.defaultIndicator,
+                        isSelected ? styles.selectedIndicator : styles.defaultIndicator,
                       ]}
                     />
                   )}

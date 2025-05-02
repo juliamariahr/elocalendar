@@ -67,9 +67,21 @@ export function useMenstrualCycle() {
     menstruationStartISO: string,
     menstruationDuration: number,
     cycleLength: number,
-    menstruationDaysPassados: string[]
+    menstruationDays: string[]
   ) {
-    const dataUltimaMenstruacao = formatarDataISO(menstruationStartISO);
+    const diasMenstruados = menstruationDays
+      .map(formatarDataISO)
+      .filter((d): d is Date => !!d)
+      .sort((a, b) => a.getTime() - b.getTime());
+
+    const menstruationDaysPassados = diasMenstruados.map((d) =>
+      format(d, "yyyy-MM-dd")
+    );
+
+    const dataUltimaMenstruacao =
+      diasMenstruados[diasMenstruados.length - 1] ??
+      formatarDataISO(menstruationStartISO);
+
     if (!dataUltimaMenstruacao || isNaN(dataUltimaMenstruacao.getTime())) {
       console.error("Erro: Data inválida.");
       return;
@@ -82,7 +94,9 @@ export function useMenstrualCycle() {
     dataProximaMenstruacao.setDate(dataUltimaMenstruacao.getDate() + cycleLength);
 
     const dataProximaFimMenstruacao = new Date(dataProximaMenstruacao);
-    dataProximaFimMenstruacao.setDate(dataProximaFimMenstruacao.getDate() + menstruationDuration - 1);
+    dataProximaFimMenstruacao.setDate(
+      dataProximaFimMenstruacao.getDate() + menstruationDuration - 1
+    );
 
     const dataOvulacao = new Date(dataUltimaMenstruacao);
     dataOvulacao.setDate(dataUltimaMenstruacao.getDate() + (cycleLength - 14));
@@ -116,10 +130,7 @@ export function useMenstrualCycle() {
       menstruationDuration,
       cycleLength,
       futurasMenstruacoes,
-      menstruationDaysPassados: menstruationDaysPassados.map((d: string) => {
-        const date = formatarDataISO(d);
-        return date ? format(date, "yyyy-MM-dd") : "";
-      }).filter(Boolean),
+      menstruationDaysPassados,
     });
   }
 
