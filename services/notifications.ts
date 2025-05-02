@@ -54,42 +54,46 @@ export async function scheduleNotification(title: string, body: string, secondsF
 }
 
 export async function scheduleDailyPillReminder(hour: number, minute: number) {
-  if (Platform.OS !== 'android') return;
+  if (Platform.OS !== "android") return;
 
-  const id = await Notifications.scheduleNotificationAsync({
+  const now = new Date();
+  const firstTrigger = new Date();
+  firstTrigger.setHours(hour, minute, 0, 0);
+
+  if (firstTrigger <= now) {
+    firstTrigger.setDate(firstTrigger.getDate() + 1);
+  }
+
+  const secondsUntil = Math.floor((firstTrigger.getTime() - now.getTime()) / 1000);
+
+  const oneTimeId = await Notifications.scheduleNotificationAsync({
     content: {
-      title: 'Hora de tomar a pílula!',
-      body: 'Não esqueça de tomar seu anticoncepcional.',
+      title: "Hora de tomar a pílula!",
+      body: "Não esqueça de tomar seu anticoncepcional.",
+      sound: true,
+    },
+    trigger: {
+      seconds: secondsUntil,
+      repeats: false,
+      channelId: "default",
+    },
+  });
+  scheduledNotificationIds.push(oneTimeId);
+
+  const recurringId = await Notifications.scheduleNotificationAsync({
+    content: {
+      title: "Hora de tomar a pílula!",
+      body: "Não esqueça de tomar seu anticoncepcional.",
       sound: true,
     },
     trigger: {
       hour,
       minute,
       repeats: true,
-      channelId: 'default',
+      channelId: "default",
     },
   });
-
-  scheduledNotificationIds.push(id);
-}
-
-export async function schedulePatchReminder(daysInterval: number) {
-  if (Platform.OS !== 'android') return;
-
-  const seconds = daysInterval * 86400;
-  const id = await Notifications.scheduleNotificationAsync({
-    content: {
-      title: 'Trocar Adesivo',
-      body: 'Está na hora de trocar seu adesivo anticoncepcional.',
-      sound: true,
-    },
-    trigger: {
-      seconds,
-      repeats: true,
-      channelId: 'default',
-    },
-  });
-  scheduledNotificationIds.push(id);
+  scheduledNotificationIds.push(recurringId);
 }
 
 export async function scheduleMenstruationWarning(menstruationDate: Date) {
@@ -136,32 +140,71 @@ export async function scheduleDelayedMenstruationWarning(menstruationDate: Date)
   scheduledNotificationIds.push(id);
 }
 
+export async function scheduleCycleHealthWarnings(menstruationDates: string[]) {
+  if (Platform.OS !== 'android') return;
+
+  const today = new Date();
+  const currentMonth = today.getMonth();
+  const currentYear = today.getFullYear();
+
+  const countThisMonth = menstruationDates.filter(dateStr => {
+    const date = new Date(dateStr);
+    return date.getMonth() === currentMonth && date.getFullYear() === currentYear;
+  }).length;
+
+  const lastDay = new Date(currentYear, currentMonth + 1, 0, 20, 0, 0);
+  const secondsUntil = Math.floor((lastDay.getTime() - Date.now()) / 1000);
+  if (secondsUntil <= 0) return;
+
+  let title = '';
+  let body = '';
+
+  if (countThisMonth === 0) {
+    title = 'Menstruação não registrada';
+    body = 'Você não menstruou este mês. Considere procurar orientação médica.';
+  } else if (countThisMonth > 12) {
+    title = 'Menstruação prolongada';
+    body = `Você registrou ${countThisMonth} dias de menstruação este mês. Isso pode não ser normal. Procure um médico.`;
+  } else {
+    return;
+  }
+
+  const id = await Notifications.scheduleNotificationAsync({
+    content: { title, body, sound: true },
+    trigger: {
+      seconds: secondsUntil,
+      repeats: false,
+      channelId: 'default',
+    },
+  });
+
+  scheduledNotificationIds.push(id);
+}
+
 export async function cancelAllNotifications() {
   await Notifications.cancelAllScheduledNotificationsAsync();
   scheduledNotificationIds = [];
 }
 
-export async function rescheduleAll({
-  menstruationDate,
-  pillReminder,
-  patchInterval,
-  pillTime,
-}: {
-  menstruationDate: Date;
-  pillReminder?: boolean;
-  patchInterval?: number;
-  pillTime?: { hour: number; minute: number };
-}) {
-  await cancelAllNotifications();
+export async function schedulePatchReminder(patchInterval: number) {
+  if (Platform.OS !== 'android') return;
 
-  await scheduleMenstruationWarning(menstruationDate);
-  await scheduleDelayedMenstruationWarning(menstruationDate);
+  const now = new Date();
+  const nextPatchDate = new Date(now.getTime() + patchInterval * 24 * 60 * 60 * 1000);
+  nextPatchDate.setHours(9, 0, 0, 0);
 
-  if (pillReminder && pillTime) {
-    await scheduleDailyPillReminder(pillTime.hour, pillTime.minute);
-  }
+  const id = await Notifications.scheduleNotificationAsync({
+    content: {
+      title: 'Trocar o adesivo!',
+      body: 'Está na hora de trocar o adesivo contraceptivo.',
+      sound: true,
+    },
+    trigger: {
+      seconds: Math.floor((nextPatchDate.getTime() - now.getTime()) / 1000),
+      repeats: false,
+      channelId: 'default',
+    },
+  });
 
-  if (patchInterval) {
-    await schedulePatchReminder(patchInterval);
-  }
+  scheduledNotificationIds.push(id);
 }

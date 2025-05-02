@@ -3,12 +3,15 @@ import { useRouter } from 'expo-router';
 import { auth } from '../config/firebase';
 import { useEffect, useState } from 'react';
 import { onAuthStateChanged, User } from 'firebase/auth';
+import { registerForPushNotificationsAsync } from '../services/notifications';
 
 export default function Index() {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
+    registerForPushNotificationsAsync();
+  
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
         setUser(user);

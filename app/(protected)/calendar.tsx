@@ -9,6 +9,7 @@ import { useMenstrualCycle } from "../../hooks/useMenstrualCycle";
 import { auth, db } from "../../config/firebase";
 import { doc, getDoc } from "firebase/firestore";
 import { useFocusEffect } from "@react-navigation/native";
+import { scheduleCycleHealthWarnings } from "../../services/notifications";
 
 const getLocalDateString = (date: Date) => {
   const offset = date.getTimezoneOffset();
@@ -117,6 +118,25 @@ export default function CalendarScreen() {
     }, 1000 * 60);
     return () => clearInterval(interval);
   }, []);
+  
+  useEffect(() => {
+    if (ciclo) {
+      const todosOsDias = new Set<string>();
+  
+      ciclo.menstruationDaysPassados?.forEach((d) => todosOsDias.add(d));
+  
+      ciclo.futurasMenstruacoes?.forEach(({ inicio, fim }) => {
+        const start = new Date(inicio);
+        const end = new Date(fim);
+        while (start <= end) {
+          todosOsDias.add(start.toISOString().split("T")[0]);
+          start.setDate(start.getDate() + 1);
+        }
+      });
+  
+      scheduleCycleHealthWarnings(Array.from(todosOsDias));
+    }
+  }, [ciclo]);  
 
   useFocusEffect(
     useCallback(() => {
@@ -196,16 +216,14 @@ export default function CalendarScreen() {
 
   if (ciclo) {
     const {
-      ultimaMenstruacao,
-      fimMenstruacao,
-      ovulacao,
+      menstruationDaysPassados,
+      futurasMenstruacoes,
       inicioFertilidade,
       fimFertilidade,
-      futurasMenstruacoes,
-      menstruationDaysPassados
+      ovulacao
     } = ciclo;
 
-    menstruationDaysPassados?.forEach((dateStr: string) => {
+    menstruationDaysPassados?.forEach((dateStr) => {
       markedDates[dateStr] = {
         customStyles: {
           container: { backgroundColor: "#a87cb3", borderRadius: 5 },
@@ -215,33 +233,20 @@ export default function CalendarScreen() {
       };
     });
 
-    let dataAtual = new Date(ultimaMenstruacao);
-    while (dataAtual <= new Date(fimMenstruacao)) {
-      const dataStr = getLocalDateString(dataAtual);
-      if (!markedDates[dataStr]) {
-        markedDates[dataStr] = {
-          customStyles: {
-            container: { backgroundColor: "#a87cb3", borderRadius: 5 },
-            text: { color: "#fff", fontWeight: "bold" }
-          },
-          type: "menstruation",
-        };
-      }
-      dataAtual.setDate(dataAtual.getDate() + 1);
-    }
-
     futurasMenstruacoes?.forEach(({ inicio, fim }) => {
       let data = new Date(inicio);
       const end = new Date(fim);
       while (data <= end) {
         const dateStr = getLocalDateString(data);
-        markedDates[dateStr] = {
-          customStyles: {
-            container: { backgroundColor: "#d6a3e6", borderRadius: 5 },
-            text: { color: "#fff", fontWeight: "bold" }
-          },
-          type: "next-period",
-        };
+        if (!markedDates[dateStr]) {
+          markedDates[dateStr] = {
+            customStyles: {
+              container: { backgroundColor: "#d6a3e6", borderRadius: 5 },
+              text: { color: "#fff", fontWeight: "bold" }
+            },
+            type: "menstruation",
+          };
+        }
         data.setDate(data.getDate() + 1);
       }
     });
@@ -267,13 +272,13 @@ export default function CalendarScreen() {
       },
       type: "ovulation",
     };
-  }
+  }  
 
   if (markedDates[todayStr]) {
     markedDates[todayStr].customStyles.container = {
       ...markedDates[todayStr].customStyles.container,
       borderWidth: 2,
-      borderColor: "#a87cb3",
+      borderColor: "#6F519C",
     };
   } else {
     markedDates[todayStr] = {
