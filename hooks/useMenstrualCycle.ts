@@ -29,6 +29,27 @@ function formatarDataISO(date: string): Date | null {
   return null;
 }
 
+function agruparDiasConsecutivos(dias: Date[]): Date[][] {
+  if (dias.length === 0) return [];
+
+  const grupos: Date[][] = [];
+  let grupoAtual: Date[] = [dias[0]];
+
+  for (let i = 1; i < dias.length; i++) {
+    const anterior = dias[i - 1];
+    const atual = dias[i];
+    const diff = (atual.getTime() - anterior.getTime()) / (1000 * 60 * 60 * 24);
+    if (diff === 1) {
+      grupoAtual.push(atual);
+    } else {
+      grupos.push(grupoAtual);
+      grupoAtual = [atual];
+    }
+  }
+  grupos.push(grupoAtual);
+  return grupos;
+}
+
 export function useMenstrualCycle() {
   const [cycleInfo, setCycleInfo] = useState<CycleData | null>(null);
   const { refetch } = useLocalSearchParams();
@@ -78,9 +99,9 @@ export function useMenstrualCycle() {
       format(d, "yyyy-MM-dd")
     );
 
-    const dataUltimaMenstruacao =
-      diasMenstruados[diasMenstruados.length - 1] ??
-      formatarDataISO(menstruationStartISO);
+    const grupos = agruparDiasConsecutivos(diasMenstruados);
+    const ultimoGrupo = grupos[grupos.length - 1] ?? [];
+    const dataUltimaMenstruacao = ultimoGrupo[0] ?? formatarDataISO(menstruationStartISO);
 
     if (!dataUltimaMenstruacao || isNaN(dataUltimaMenstruacao.getTime())) {
       console.error("Erro: Data inválida.");

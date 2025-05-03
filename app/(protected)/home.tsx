@@ -52,9 +52,17 @@ export default function Home() {
       return hoje >= inicioDate && hoje <= fimDate;
     });
 
-  const ultimaMenstruacao = new Date(`${ciclo.ultimaMenstruacao}T12:00:00`);
-  const diff = hoje.getTime() - ultimaMenstruacao.getTime();
-  const diaDoCiclo = diff >= 0 ? Math.floor(diff / (1000 * 60 * 60 * 24)) + 1 : null;
+    const inicioCicloAtual = menstruandoHoje
+    ? ciclo.futurasMenstruacoes.find(({ inicio, fim }) => {
+        const inicioDate = new Date(`${inicio}T12:00:00`);
+        const fimDate = new Date(`${fim}T12:00:00`);
+        return hoje >= inicioDate && hoje <= fimDate;
+      })?.inicio || ciclo.ultimaMenstruacao
+    : ciclo.ultimaMenstruacao;
+  
+  const inicioCicloDate = new Date(`${inicioCicloAtual}T12:00:00`);
+  const diff = hoje.getTime() - inicioCicloDate.getTime();
+  const diaDoCiclo = diff >= 0 ? Math.floor(diff / (1000 * 60 * 60 * 24)) + 1 : null;  
 
   const diasParaMenstruar = !menstruandoHoje && ciclo.proximaMenstruacao
     ? Math.round((new Date(ciclo.proximaMenstruacao).getTime() - hoje.getTime()) / (1000 * 60 * 60 * 24))
