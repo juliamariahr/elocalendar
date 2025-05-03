@@ -5,6 +5,7 @@ import { signOut } from "firebase/auth";
 import { auth, db } from "../../config/firebase";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import BackButton from "../../components/BackButton";
+import BottomNav from "../../components/BottomNav";
 import { Feather } from "@expo/vector-icons";
 import { cancelAllNotifications, scheduleDailyPillReminder, schedulePatchReminder } from "../../services/notifications";
 
@@ -130,7 +131,7 @@ export default function Profile() {
   return (
     <View style={styles.container}>
       {!editMode && <BackButton route="/home" />}
-      <ScrollView contentContainerStyle={styles.scroll}>
+      <ScrollView contentContainerStyle={[styles.scroll, { paddingBottom: editMode ? 95 : 65 }]}>
         <View style={styles.box}>
           <View style={styles.titleRow}>
             <Text style={styles.title}>Perfil</Text>
@@ -310,13 +311,18 @@ export default function Profile() {
             </TouchableOpacity>
           )}
 
-          <View style={styles.divider} />
+          {!editMode && (
+            <>
+              <View style={styles.divider} />
 
-          <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-            <Text style={styles.buttonText}>Sair da Conta</Text>
-          </TouchableOpacity>
+              <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+                <Text style={styles.buttonText}>Sair da Conta</Text>
+              </TouchableOpacity>
+            </>
+          )}
         </View>
       </ScrollView>
+      <BottomNav />
     </View>
   );
 }
@@ -339,7 +345,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 20,
     alignItems: "stretch",
-    elevation: 4,
+    elevation: 3,
   },
   titleRow: {
     flexDirection: "row",

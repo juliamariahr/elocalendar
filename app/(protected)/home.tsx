@@ -172,7 +172,7 @@ export default function Home() {
                 <TouchableOpacity style={[styles.card, { backgroundColor: item.cor }]} onPress={abrirCalendario}>
                   <Text style={styles.cardDate}>{formatarData(dataFase)}</Text>
                   <Text style={styles.cardText}>{item.fase}</Text>
-                  <FontAwesome5 name={item.icone} size={20} color="#333" />
+                  <FontAwesome5 name={item.icone} size={15} color="#333" />
                 </TouchableOpacity>
               );
             }}
@@ -245,6 +245,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     width: "90%",
     marginBottom: 15,
+    elevation: 3,
   },
   countdown: {
     fontSize: 24,
@@ -279,6 +280,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     width: "90%",
     marginVertical: 10,
+    elevation: 3,
   },
   statusRow: {
     flexDirection: "row",
@@ -309,6 +311,7 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     padding: 15,
     marginVertical: 10,
+    elevation: 3,
   },
   cycleHeader: {
     flexDirection: "row",
@@ -332,6 +335,7 @@ const styles = StyleSheet.create({
   },
   cardText: {
     fontSize: 14,
+    paddingBottom: 5,
   },
   graphBox: {
     backgroundColor: "#fff",
@@ -340,6 +344,7 @@ const styles = StyleSheet.create({
     width: "90%",
     marginTop: 15,
     alignItems: "center",
+    elevation: 3,
   },
   graphTitle: {
     fontSize: 16,
@@ -361,10 +366,5 @@ const styles = StyleSheet.create({
   graphLabel: {
     fontSize: 12,
     color: "#777",
-  },
-  bottomNav: {
-    position: "absolute",
-    bottom: 0,
-    width: "100%",
   },
 });

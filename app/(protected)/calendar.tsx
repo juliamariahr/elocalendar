@@ -21,7 +21,7 @@ const sintomasMap: Record<string, string> = {
   dor_cabeca: "Dor de cabeça",
   enxaqueca: "Enxaqueca",
   tontura: "Tontura",
-  espinha: "Espinha",
+  acne: "Acne",
   dor_pescoco: "Dor no pescoço",
   dor_ombro: "Dor no ombro",
   mama_dor: "Mama com dor",
@@ -358,10 +358,10 @@ export default function CalendarScreen() {
                       {date?.day}
                     </Text>
                     {markedDates[dateString]?.type === "fertility" && (
-                      <FontAwesome5 name="leaf" size={12} color="#333" style={styles.icon} />
+                      <FontAwesome5 name="leaf" size={10} color="#333" style={styles.icon} />
                     )}
                     {markedDates[dateString]?.type === "ovulation" && (
-                      <FontAwesome5 name="egg" size={12} color="#333" style={styles.icon} />
+                      <FontAwesome5 name="egg" size={10} color="#333" style={styles.icon} />
                     )}
                   </View>
                 </TouchableOpacity>
@@ -433,6 +433,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginHorizontal: 15,
     padding: 10,
+    elevation: 3,
   },
   dayContainer: {
     width: 40,
