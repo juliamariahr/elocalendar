@@ -208,3 +208,26 @@ export async function schedulePatchReminder(patchInterval: number) {
 
   scheduledNotificationIds.push(id);
 }
+  export async function scheduleInjectionReminder(type: "Mensal" | "Trimestral") {
+    if (Platform.OS !== 'android') return;
+  
+    const intervalDays = type === "Mensal" ? 30 : 90;
+    const now = new Date();
+    const injectionDate = new Date(now.getTime() + intervalDays * 24 * 60 * 60 * 1000);
+    injectionDate.setHours(9, 0, 0, 0);
+  
+    const id = await Notifications.scheduleNotificationAsync({
+      content: {
+        title: "Hora da Injeção!",
+        body: `Está na hora de aplicar sua injeção contraceptiva ${type}.`,
+        sound: true,
+      },
+      trigger: {
+        seconds: Math.floor((injectionDate.getTime() - now.getTime()) / 1000),
+        repeats: false,
+        channelId: "default",
+      },
+    });
+  
+    scheduledNotificationIds.push(id);
+  }

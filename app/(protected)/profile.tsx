@@ -7,7 +7,7 @@ import { doc, getDoc, updateDoc } from "firebase/firestore";
 import BackButton from "../../components/BackButton";
 import BottomNav from "../../components/BottomNav";
 import { Feather } from "@expo/vector-icons";
-import { cancelAllNotifications, scheduleDailyPillReminder, schedulePatchReminder } from "../../services/notifications";
+import { cancelAllNotifications, scheduleDailyPillReminder, schedulePatchReminder, scheduleInjectionReminder } from "../../services/notifications";
 
 export default function Profile() {
   const router = useRouter();
@@ -114,13 +114,20 @@ export default function Profile() {
         await cancelAllNotifications();
 
         if (userData.contraceptiveMethods?.includes("Pílula") && userData.pill_hour && userData.pill_minute) {
-          await scheduleDailyPillReminder(parseInt(userData.pill_hour, 10), parseInt(userData.pill_minute, 10));
+          await scheduleDailyPillReminder(
+            parseInt(userData.pill_hour, 10),
+            parseInt(userData.pill_minute, 10)
+          );
         }
 
         if (userData.contraceptiveMethods?.includes("Adesivo")) {
           await schedulePatchReminder(7);
         }
 
+        if (userData.contraceptiveMethods?.includes("Injeção") && userData.injection_type) {
+          await scheduleInjectionReminder(userData.injection_type as "Mensal" | "Trimestral");
+        }
+        
         Alert.alert("Sucesso", "Perfil atualizado com sucesso!");
       } catch (error) {
         Alert.alert("Erro", "Não foi possível atualizar o perfil.");
