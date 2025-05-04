@@ -94,7 +94,7 @@ export default function ContraceptiveMethod() {
 
   return (
     <SmoothTransition>
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
+      <ScrollView contentContainerStyle={styles.scrollContainer} style={{ flex: 1 }}>
         <View style={styles.container}>
           <Text style={styles.title}>Você usa ou já usou algum método contraceptivo?</Text>
 
@@ -198,16 +198,20 @@ export default function ContraceptiveMethod() {
 
 const styles = StyleSheet.create({
   scrollContainer: {
-    paddingVertical: 20,
+    flexGrow: 1,
+    justifyContent: "center",
     alignItems: "center",
+    padding: 20,
+    backgroundColor: "#fbeaff",
   },
   container: {
-    width: "90%",
-    alignItems: "center",
-    backgroundColor: "#F6E4F6",
-    borderRadius: 20,
+    width: "100%",
+    backgroundColor: "#fbeaff",
     padding: 20,
-  },
+    alignItems: "center",
+    flexGrow: 1,
+    justifyContent: "center",
+  },  
   title: {
     fontSize: 18,
     fontWeight: "bold",
