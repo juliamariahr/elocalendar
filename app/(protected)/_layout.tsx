@@ -2,62 +2,101 @@ import { Stack } from "expo-router";
 import { useEffect, useState, useRef } from "react";
 import { View, Text, ActivityIndicator, AppState, AppStateStatus, StyleSheet } from "react-native";
 import * as LocalAuthentication from "expo-local-authentication";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { auth, db } from "../../config/firebase";
 import { doc, getDoc } from "firebase/firestore";
 
 export default function ProtectedLayout() {
   const [biometriaFeita, setBiometriaFeita] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [foiReaberto, setFoiReaberto] = useState(false);
   const appState = useRef(AppState.currentState);
 
   const autenticarBiometria = async () => {
-    const isEnrolled = await LocalAuthentication.hasHardwareAsync()
-      && await LocalAuthentication.isEnrolledAsync();
+    try {
+      const isEnrolled = await LocalAuthentication.hasHardwareAsync()
+        && await LocalAuthentication.isEnrolledAsync();
 
-    if (!isEnrolled) {
-      setBiometriaFeita(true);
-      return;
+      if (!isEnrolled) {
+        await AsyncStorage.setItem("biometria_realizada", "true");
+        setBiometriaFeita(true);
+        return;
+      }
+
+      const result = await LocalAuthentication.authenticateAsync({
+        promptMessage: "Confirme sua identidade",
+        cancelLabel: "Cancelar",
+        fallbackLabel: "Usar código",
+        disableDeviceFallback: true,
+      });
+
+      if (result.success) {
+        await AsyncStorage.setItem("biometria_realizada", "true");
+        setBiometriaFeita(true);
+      } else {
+        setBiometriaFeita(false);
+      }
+    } catch (err) {
+      console.error("Erro na biometria:", err);
+      setBiometriaFeita(false);
+    } finally {
+      setLoading(false);
     }
-
-    const result = await LocalAuthentication.authenticateAsync({
-      promptMessage: "Confirme sua identidade",
-    });
-
-    setBiometriaFeita(result.success);
   };
 
   useEffect(() => {
     const checkCicloAndAuth = async () => {
       const user = auth.currentUser;
-      if (!user) return;
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+
+      const precisaBiometria = await AsyncStorage.getItem("biometria_necessaria");
+      const jaFezBiometria = await AsyncStorage.getItem("biometria_realizada");
+
+      if (precisaBiometria === "true") {
+        await AsyncStorage.removeItem("biometria_necessaria");
+        await AsyncStorage.removeItem("biometria_realizada"); // força nova biometria
+      }
 
       const docSnap = await getDoc(doc(db, "usuarios", user.uid));
       const cicloFeito = docSnap.exists() && docSnap.data().cicloConfigurado;
 
       if (cicloFeito) {
-        await autenticarBiometria();
+        if (jaFezBiometria !== "true") {
+          await autenticarBiometria();
+        } else {
+          setBiometriaFeita(true);
+          setLoading(false);
+        }
       } else {
         setBiometriaFeita(true);
+        setLoading(false);
       }
-
-      setLoading(false);
     };
 
     checkCicloAndAuth();
   }, []);
 
   useEffect(() => {
-    const sub = AppState.addEventListener("change", (nextState: AppStateStatus) => {
-      const wasInBackground = appState.current.match(/inactive|background/);
-      if (wasInBackground && nextState === "active") {
-        setBiometriaFeita(false);
-        autenticarBiometria();
-      }
+    const sub = AppState.addEventListener("change", async (nextState: AppStateStatus) => {
+      const previous = appState.current;
       appState.current = nextState;
+
+      if (previous === "background" && nextState === "active") {
+        if (foiReaberto) {
+          await AsyncStorage.removeItem("biometria_realizada"); // força nova biometria ao reabrir app
+          setBiometriaFeita(false);
+          autenticarBiometria();
+        } else {
+          setFoiReaberto(true);
+        }
+      }
     });
 
     return () => sub.remove();
-  }, []);
+  }, [foiReaberto]);
 
   if (loading || !biometriaFeita) {
     return (

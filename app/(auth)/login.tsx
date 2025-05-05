@@ -3,6 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-nativ
 import { useRouter } from 'expo-router';
 import { auth } from '../../config/firebase';
 import { signInWithEmailAndPassword } from 'firebase/auth';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import BackButton from "../../components/BackButton";
 import { Ionicons } from '@expo/vector-icons';
 
@@ -23,6 +24,7 @@ export default function Login() {
 
     try {
       await signInWithEmailAndPassword(auth, email, password);
+      await AsyncStorage.setItem("biometria_necessaria", "true");
       router.replace('/home');
     } catch (error: any) {
       let customMessage = "E-mail ou senha inválidos.";
