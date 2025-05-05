@@ -116,10 +116,32 @@ export default function EditCycleLog() {
   };
 
   const toggleAtividade = (campo: keyof typeof atividadeSexual) => {
-    const novoValor = campo === "vezes"
-      ? atividadeSexual.vezes === 3 ? 0 : atividadeSexual.vezes + 1
-      : !atividadeSexual[campo];
-    const atualizado = { ...atividadeSexual, [campo]: novoValor };
+    let atualizado;
+  
+    if (campo === "vezes") {
+      atualizado = {
+        ...atividadeSexual,
+        vezes: atividadeSexual.vezes === 3 ? 0 : atividadeSexual.vezes + 1,
+        pratica: true,
+      };
+    } else if (campo === "pratica") {
+      const novoValor = !atividadeSexual.pratica;
+      atualizado = novoValor
+        ? { ...atividadeSexual, pratica: true }
+        : {
+            pratica: false,
+            preservativo: false,
+            orgasmo: false,
+            vezes: 0,
+          };
+    } else {
+      atualizado = {
+        ...atividadeSexual,
+        [campo]: !atividadeSexual[campo],
+        pratica: true,
+      };
+    }
+  
     setAtividadeSexual(atualizado);
     salvarLog("atividadeSexual", atualizado);
   };

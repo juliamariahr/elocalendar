@@ -66,24 +66,35 @@ export default function SexualActivityScreen() {
   }, [date]);
 
   const alterarPratica = (valor: "sim" | "nao") => {
-    setPratica(valor);
-    salvarDados(valor, preservativo, orgasmo, vezes);
+    if (valor === "nao") {
+      setPratica("nao");
+      setPreservativo(null);
+      setOrgasmo(null);
+      setVezes(1);
+      salvarDados("nao", null, null, 1);
+    } else {
+      setPratica("sim");
+      salvarDados("sim", preservativo, orgasmo, vezes);
+    }
   };
 
   const alterarPreservativo = (valor: "sim" | "nao") => {
     setPreservativo(valor);
-    salvarDados(pratica, valor, orgasmo, vezes);
+    if (pratica !== "sim") setPratica("sim");
+    salvarDados("sim", valor, orgasmo, vezes);
   };
 
   const alterarOrgasmo = (valor: "sim" | "nao") => {
     setOrgasmo(valor);
-    salvarDados(pratica, preservativo, valor, vezes);
+    if (pratica !== "sim") setPratica("sim");
+    salvarDados("sim", preservativo, valor, vezes);
   };
 
   const alterarVezes = (novo: number) => {
     const vezesLimitado = Math.min(10, Math.max(1, novo));
     setVezes(vezesLimitado);
-    salvarDados(pratica, preservativo, orgasmo, vezesLimitado);
+    if (pratica !== "sim") setPratica("sim");
+    salvarDados("sim", preservativo, orgasmo, vezesLimitado);
   };
 
   return (

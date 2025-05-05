@@ -185,10 +185,10 @@ export default function CalendarScreen() {
             detalhes.push(`😊 Humores:\n${nomes.join(", ")}`);
           }
 
-          if (data.atividadeSexual) {
+          if (data.atividadeSexual?.pratica) {
             const sexo = data.atividadeSexual;
             const sexoInfo = [
-              sexo.pratica ? "✔️ Praticou" : "🚫 Não praticou",
+              "✔️ Praticou",
               sexo.preservativo ? "🛡️ Protegido" : "⚠️ Sem proteção",
               sexo.orgasmo ? "🥳 Teve orgasmo" : "😕 Sem orgasmo",
               `❤️ ${sexo.vezes} vez(es)`
