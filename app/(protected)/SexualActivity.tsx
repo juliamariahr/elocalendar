@@ -70,8 +70,8 @@ export default function SexualActivityScreen() {
       setPratica("nao");
       setPreservativo(null);
       setOrgasmo(null);
-      setVezes(1);
-      salvarDados("nao", null, null, 1);
+      setVezes(0);
+      salvarDados("nao", null, null, 0);
     } else {
       setPratica("sim");
       salvarDados("sim", preservativo, orgasmo, vezes);
@@ -91,10 +91,18 @@ export default function SexualActivityScreen() {
   };
 
   const alterarVezes = (novo: number) => {
-    const vezesLimitado = Math.min(10, Math.max(1, novo));
+    const vezesLimitado = Math.min(10, Math.max(0, novo));
     setVezes(vezesLimitado);
-    if (pratica !== "sim") setPratica("sim");
-    salvarDados("sim", preservativo, orgasmo, vezesLimitado);
+
+    if (vezesLimitado === 0) {
+      setPratica("nao");
+      setPreservativo(null);
+      setOrgasmo(null);
+      salvarDados("nao", null, null, 1);
+    } else {
+      if (pratica !== "sim") setPratica("sim");
+      salvarDados("sim", preservativo, orgasmo, vezesLimitado);
+    }
   };
 
   return (
@@ -162,7 +170,9 @@ export default function SexualActivityScreen() {
             style={[
               styles.iconBox,
               preservativo === "sim" && styles.selectedBox,
+              pratica === "nao" && { opacity: 0.5 },
             ]}
+            disabled={pratica === "nao"}
           >
             <FontAwesome6
               name="shield-heart"
@@ -185,7 +195,9 @@ export default function SexualActivityScreen() {
             style={[
               styles.iconBox,
               preservativo === "nao" && styles.selectedBox,
+              pratica === "nao" && { opacity: 0.5 },
             ]}
+            disabled={pratica === "nao"}
           >
             <FontAwesome6
               name="ban"
@@ -213,7 +225,9 @@ export default function SexualActivityScreen() {
             style={[
               styles.iconBox,
               orgasmo === "sim" && styles.selectedBox,
+              pratica === "nao" && { opacity: 0.5 },
             ]}
+            disabled={pratica === "nao"}
           >
             <FontAwesome6
               name="face-kiss-beam"
@@ -236,7 +250,9 @@ export default function SexualActivityScreen() {
             style={[
               styles.iconBox,
               orgasmo === "nao" && styles.selectedBox,
+              pratica === "nao" && { opacity: 0.5 },
             ]}
+            disabled={pratica === "nao"}
           >
             <FontAwesome6
               name="face-sad-tear"
@@ -261,14 +277,22 @@ export default function SexualActivityScreen() {
         <View style={[styles.row, { justifyContent: "center" }]}>
           <TouchableOpacity
             onPress={() => alterarVezes(vezes - 1)}
-            style={styles.counterButton}
+            style={[
+              styles.counterButton,
+              pratica === "nao" && { opacity: 0.5 },
+            ]}
+            disabled={pratica === "nao"}
           >
             <Text style={styles.counterText}>-</Text>
           </TouchableOpacity>
           <Text style={styles.countValue}>{vezes}</Text>
           <TouchableOpacity
             onPress={() => alterarVezes(vezes + 1)}
-            style={styles.counterButton}
+            style={[
+              styles.counterButton,
+              pratica === "nao" && { opacity: 0.5 },
+            ]}
+            disabled={pratica === "nao"}
           >
             <Text style={styles.counterText}>+</Text>
           </TouchableOpacity>
