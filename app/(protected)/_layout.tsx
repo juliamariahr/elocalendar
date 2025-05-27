@@ -5,8 +5,11 @@ import * as LocalAuthentication from "expo-local-authentication";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { auth, db } from "../../config/firebase";
 import { doc, getDoc } from "firebase/firestore";
+import { useTheme } from "../../context/ThemeContext";
+import { StatusBar } from "expo-status-bar";
 
 export default function ProtectedLayout() {
+  const { theme } = useTheme();
   const [biometriaFeita, setBiometriaFeita] = useState(false);
   const [loading, setLoading] = useState(true);
   const [foiReaberto, setFoiReaberto] = useState(false);
@@ -57,7 +60,7 @@ export default function ProtectedLayout() {
 
       if (precisaBiometria === "true") {
         await AsyncStorage.removeItem("biometria_necessaria");
-        await AsyncStorage.removeItem("biometria_realizada"); // força nova biometria
+        await AsyncStorage.removeItem("biometria_realizada");
       }
 
       const docSnap = await getDoc(doc(db, "usuarios", user.uid));
@@ -86,7 +89,7 @@ export default function ProtectedLayout() {
 
       if (previous === "background" && nextState === "active") {
         if (foiReaberto) {
-          await AsyncStorage.removeItem("biometria_realizada"); // força nova biometria ao reabrir app
+          await AsyncStorage.removeItem("biometria_realizada");
           setBiometriaFeita(false);
           autenticarBiometria();
         } else {
@@ -100,29 +103,33 @@ export default function ProtectedLayout() {
 
   if (loading || !biometriaFeita) {
     return (
-      <View style={styles.authContainer}>
-        <ActivityIndicator size="large" color="#a87cb3" />
-        <Text style={styles.authText}>
+      <View style={[styles.authContainer, { backgroundColor: theme.background }]}>
+        <StatusBar style={theme.name === "dark" ? "light" : "dark"} />
+        <ActivityIndicator size="large" color={theme.primary} />
+        <Text style={[styles.authText, { color: theme.text }]}>
           {loading ? "Carregando..." : "Desbloqueie com biometria para continuar"}
         </Text>
       </View>
     );
   }
 
-  return <Stack screenOptions={{ headerShown: false }} />;
+  return (
+    <>
+      <StatusBar style={theme.name === "dark" ? "light" : "dark"} />
+      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: theme.background } }} />
+    </>
+  );
 }
 
 const styles = StyleSheet.create({
   authContainer: {
     flex: 1,
-    backgroundColor: "#F6E4F6",
     justifyContent: "center",
     alignItems: "center",
   },
   authText: {
     marginTop: 12,
     fontSize: 16,
-    color: "#6a3b7d",
     fontWeight: "bold",
   },
 });

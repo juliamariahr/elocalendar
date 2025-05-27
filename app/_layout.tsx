@@ -3,12 +3,15 @@ import { Stack, useRouter } from "expo-router";
 import { auth, db } from "../config/firebase";
 import { doc, getDoc } from "firebase/firestore";
 import { onAuthStateChanged, User } from "firebase/auth";
-import { View, ActivityIndicator } from "react-native";
+import { View, ActivityIndicator, StyleSheet } from "react-native";
+import { ThemeProvider, useTheme } from '../context/ThemeContext';
+import { StatusBar } from 'expo-status-bar';
 
-export default function Layout() {
+function AppLayout() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
+  const { theme } = useTheme();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
@@ -17,13 +20,13 @@ export default function Layout() {
       if (currentUser) {
         const docSnap = await getDoc(doc(db, "usuarios", currentUser.uid));
         const cicloFeito = docSnap.exists() && docSnap.data().cicloConfigurado;
-      
+
         if (cicloFeito) {
           router.replace("/(protected)/home");
         } else {
           router.replace("/(setup)/MenstruationDate");
-        }        
-      }      
+        }
+      }
     });
 
     return () => unsubscribe();
@@ -31,11 +34,33 @@ export default function Layout() {
 
   if (loading) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <ActivityIndicator size="large" color="#a87cb3" />
+      <View style={[styles.loadingContainer, { backgroundColor: theme.background }]}>
+        <StatusBar style={theme.name === "dark" ? "light" : "dark"} />
+        <ActivityIndicator size="large" color={theme.primary} />
       </View>
     );
   }
 
-  return <Stack screenOptions={{ headerShown: false }} />;
+  return (
+    <>
+      <StatusBar style={theme.name === "dark" ? "light" : "dark"} />
+      <Stack screenOptions={{ headerShown: false }} />
+    </>
+  );
 }
+
+export default function Layout() {
+  return (
+    <ThemeProvider>
+      <AppLayout />
+    </ThemeProvider>
+  );
+}
+
+const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+});
