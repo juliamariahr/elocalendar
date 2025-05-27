@@ -6,12 +6,16 @@ import { auth, db } from "../../config/firebase";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import BackButton from "../../components/BackButton";
 import BottomNav from "../../components/BottomNav";
+import ThemeModal from "../../components/ThemeModal";
 import { Feather } from "@expo/vector-icons";
 import { cancelAllNotifications, scheduleDailyPillReminder, schedulePatchReminder, scheduleInjectionReminder } from "../../services/notifications";
+import { useTheme } from "../../context/ThemeContext";
 
 export default function Profile() {
   const router = useRouter();
+  const { theme } = useTheme();
   const [editMode, setEditMode] = useState(false);
+  const [themeModalVisible, setThemeModalVisible] = useState(false);
 
   const [userData, setUserData] = useState<{
     name: string;
@@ -127,7 +131,7 @@ export default function Profile() {
         if (userData.contraceptiveMethods?.includes("Injeção") && userData.injection_type) {
           await scheduleInjectionReminder(userData.injection_type as "Mensal" | "Trimestral");
         }
-        
+
         Alert.alert("Sucesso", "Perfil atualizado com sucesso!");
       } catch (error) {
         Alert.alert("Erro", "Não foi possível atualizar o perfil.");
@@ -136,64 +140,70 @@ export default function Profile() {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
       {!editMode && <BackButton route="/home" />}
-      <ScrollView contentContainerStyle={[styles.scroll, { paddingBottom: editMode ? 95 : 65 }]}>
-        <View style={styles.box}>
+      <ScrollView 
+        contentContainerStyle={[styles.scroll, { paddingBottom: editMode ? 95 : 65 }]}
+        keyboardShouldPersistTaps="handled"
+      >
+        <View style={[styles.box, { backgroundColor: theme.secondary }]}>
           <View style={styles.titleRow}>
-            <Text style={styles.title}>Perfil</Text>
+            <Text style={[styles.title, { color: theme.primary }]}>Perfil</Text>
             <TouchableOpacity onPress={() => setEditMode(!editMode)}>
-              <Feather name="edit" size={20} color="#6a3b7d" />
+              <Feather name="edit" size={20} color={theme.primary} />
             </TouchableOpacity>
           </View>
 
-          <Text style={styles.label}>Nome:</Text>
+          <Text style={[styles.label, { color: theme.primary }]}>Nome:</Text>
           {editMode ? (
             <TextInput
-              style={styles.input}
+              style={[styles.input, { color: theme.text }]}
               value={userData.name}
               onChangeText={(text) => setUserData({ ...userData, name: text })}
             />
           ) : (
-            <Text style={styles.text}>{userData.name}</Text>
+            <Text style={[styles.text, { color: theme.text }]}>{userData.name}</Text>
           )}
 
-          <Text style={styles.label}>Data de nascimento:</Text>
+          <Text style={[styles.label, { color: theme.primary }]}>Data de nascimento:</Text>
           {editMode ? (
             <TextInput
-              style={styles.input}
+              style={[styles.input, { color: theme.text }]}
               value={userData.birthdate}
               onChangeText={(text) => setUserData({ ...userData, birthdate: text })}
               placeholder="YYYY-MM-DD"
             />
           ) : (
-            <Text style={styles.text}>{userData.birthdate || "Não informado"}</Text>
+            <Text style={[styles.text, { color: theme.text }]}>{userData.birthdate || "Não informado"}</Text>
           )}
 
-          <Text style={styles.label}>Email:</Text>
+          <Text style={[styles.label, { color: theme.primary }]}>Email:</Text>
           {editMode ? (
             <TextInput
-              style={styles.input}
+              style={[styles.input, { color: theme.text }]}
               value={userData.email}
               onChangeText={(text) => setUserData({ ...userData, email: text })}
             />
           ) : (
-            <Text style={styles.text}>{userData.email}</Text>
+            <Text style={[styles.text, { color: theme.text }]}>{userData.email}</Text>
           )}
 
           <View style={styles.divider} />
 
-          <Text style={styles.subtitle}>Métodos Contraceptivos</Text>
+          <Text style={[styles.subtitle, { color: theme.primary }]}>Métodos Contraceptivos</Text>
 
           {editMode ? (
             <>
               {allMethods.map((method) => (
                 <TouchableOpacity
                   key={method}
-                  style={[styles.option, userData.contraceptiveMethods?.includes(method) ? styles.selectedOption : {}]}
+                  style={[styles.option, userData.contraceptiveMethods?.includes(method) ? [styles.selectedOption, { backgroundColor: theme.primary }] : { backgroundColor: theme.button }]}
                   onPress={() => toggleMethod(method)}
                 >
-                  <Text style={[styles.optionText, userData.contraceptiveMethods?.includes(method) ? styles.selectedText : {}]}>
+                  <Text style={[
+                    styles.optionText,
+                    { color: userData.contraceptiveMethods?.includes(method) ? theme.buttonText : theme.text },
+                  ]}>
                     {method}
                   </Text>
                 </TouchableOpacity>
@@ -201,125 +211,24 @@ export default function Profile() {
             </>
           ) : userData.contraceptiveMethods && userData.contraceptiveMethods.length > 0 ? (
             userData.contraceptiveMethods.map((method, index) => (
-              <Text key={index} style={styles.text}>
-                {method}
-              </Text>
+              <Text key={index} style={[styles.text, { color: theme.text }]}>{method}</Text>
             ))
           ) : (
-            <Text style={styles.text}>Nenhum método selecionado</Text>
-          )}
-
-          {userData.contraceptiveMethods?.includes("Pílula") && (
-            <>
-              <Text style={styles.label}>Quantos dias de uso?</Text>
-              {editMode ? (
-                <TextInput
-                  style={styles.input}
-                  keyboardType="numeric"
-                  value={userData.medication_days}
-                  onChangeText={(text) => setUserData({ ...userData, medication_days: text })}
-                  placeholder="Ex: 21"
-                />
-              ) : (
-                <Text style={styles.text}>{userData.medication_days || "Não informado"}</Text>
-              )}
-
-              <Text style={styles.label}>Semana de pausa (dias):</Text>
-              {editMode ? (
-                <TextInput
-                  style={styles.input}
-                  keyboardType="numeric"
-                  value={userData.pause_week}
-                  onChangeText={(text) => setUserData({ ...userData, pause_week: text })}
-                  placeholder="Ex: 7"
-                />
-              ) : (
-                <Text style={styles.text}>{userData.pause_week || "Não informado"}</Text>
-              )}
-              
-              <Text style={styles.label}>Horário da Pílula:</Text>
-              {editMode ? (
-                <View style={{ flexDirection: "row", gap: 10 }}>
-                <TextInput
-                  style={[styles.input, { flex: 1 }]}
-                  keyboardType="numeric"
-                  value={userData.pill_hour}
-                  onChangeText={(text) => {
-                    let hour = text.replace(/\D/g, "");
-                    let num = parseInt(hour, 10);
-                    if (!isNaN(num)) {
-                      if (num > 23) num = 23;
-                      hour = num.toString();
-                    }
-                    setUserData({ ...userData, pill_hour: hour });
-                  }}
-                  placeholder="Hora (0-23)"
-                  maxLength={2}
-                />
-                <TextInput
-                  style={[styles.input, { flex: 1 }]}
-                  keyboardType="numeric"
-                  value={userData.pill_minute}
-                  onChangeText={(text) => {
-                    let minute = text.replace(/\D/g, "");
-                    let num = parseInt(minute, 10);
-                    if (!isNaN(num)) {
-                      if (num > 59) num = 59;
-                      minute = num.toString();
-                    }
-                    setUserData({ ...userData, pill_minute: minute });
-                  }}
-                  placeholder="Minuto (0-59)"
-                  maxLength={2}
-                />
-              </View>
-              ) : (
-                <Text style={styles.text}>
-                  {userData.pill_hour && userData.pill_minute
-                    ? `${userData.pill_hour.padStart(2, "0")}:${userData.pill_minute.padStart(2, "0")}`
-                    : "Não informado"}
-                </Text>
-              )}
-            </>
-          )}
-
-          {userData.contraceptiveMethods?.includes("Injeção") && (
-            <>
-              <Text style={styles.label}>Tipo de Injeção:</Text>
-              {editMode ? (
-                <View style={styles.injectionButtons}>
-                  <TouchableOpacity
-                    style={[styles.smallButton, userData.injection_type === "Mensal" ? styles.selectedSmallButton : {}]}
-                    onPress={() => setUserData({ ...userData, injection_type: "Mensal" })}
-                  >
-                    <Text style={[styles.optionText, userData.injection_type === "Mensal" ? styles.selectedText : {}]}>
-                      Mensal
-                    </Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    style={[styles.smallButton, userData.injection_type === "Trimestral" ? styles.selectedSmallButton : {}]}
-                    onPress={() => setUserData({ ...userData, injection_type: "Trimestral" })}
-                  >
-                    <Text style={[styles.optionText, userData.injection_type === "Trimestral" ? styles.selectedText : {}]}>
-                      Trimestral
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              ) : (
-                <Text style={styles.text}>{userData.injection_type || "Não informado"}</Text>
-              )}
-            </>
+            <Text style={[styles.text, { color: theme.text }]}>Nenhum método selecionado</Text>
           )}
 
           {editMode && (
-            <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-              <Text style={styles.buttonText}>Salvar Alterações</Text>
+            <TouchableOpacity style={[styles.saveButton, { backgroundColor: theme.button }]} onPress={handleSave}>
+              <Text style={[styles.buttonText, { color: theme.buttonText }]}>Salvar Alterações</Text>
             </TouchableOpacity>
           )}
 
           {!editMode && (
             <>
+              <TouchableOpacity style={[styles.themeButton, { backgroundColor: theme.button }]} onPress={() => setThemeModalVisible(true)}>
+                <Text style={[styles.buttonText, { color: theme.buttonText }]}>Alterar Tema</Text>
+              </TouchableOpacity>
+
               <View style={styles.divider} />
 
               <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
@@ -329,6 +238,12 @@ export default function Profile() {
           )}
         </View>
       </ScrollView>
+
+      <ThemeModal
+        visible={themeModalVisible}
+        onClose={() => setThemeModalVisible(false)}
+      />
+
       <BottomNav />
     </View>
   );
@@ -336,115 +251,21 @@ export default function Profile() {
 
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#F6E4F6",
-  },
-  scroll: {
-    flexGrow: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingVertical: 20,
-  },
-  box: {
-    width: "90%",
-    backgroundColor: "#fff",
-    borderRadius: 20,
-    padding: 20,
-    alignItems: "stretch",
-    elevation: 3,
-  },
-  titleRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 10,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#6a3b7d",
-  },
-  subtitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#6a3b7d",
-    marginTop: 20,
-    marginBottom: 10,
-  },
-  label: {
-    fontSize: 14,
-    color: "#6a3b7d",
-    marginTop: 10,
-  },
-  text: {
-    fontSize: 16,
-    color: "#333",
-    marginBottom: 5,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 10,
-    padding: 10,
-    marginTop: 5,
-  },
-  saveButton: {
-    backgroundColor: "#a87cb3",
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 20,
-    marginTop: 20,
-    alignItems: "center",
-  },
-  logoutButton: {
-    backgroundColor: "#d9534f",
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 20,
-    marginTop: 10,
-    alignItems: "center",
-  },
-  buttonText: {
-    color: "#fff",
-    fontWeight: "bold",
-  },
-  divider: {
-    height: 1,
-    backgroundColor: "#eee",
-    marginVertical: 20,
-  },
-  option: {
-    backgroundColor: "#fff",
-    padding: 10,
-    borderRadius: 20,
-    marginVertical: 5,
-    alignItems: "center",
-  },
-  selectedOption: {
-    backgroundColor: "#a87cb3",
-  },
-  optionText: {
-    fontSize: 16,
-    color: "#333",
-  },
-  selectedText: {
-    color: "#fff",
-    fontWeight: "bold",
-  },
-  injectionButtons: {
-    flexDirection: "row",
-    gap: 10,
-    marginTop: 10,
-  },
-  smallButton: {
-    flex: 1,
-    backgroundColor: "#fff",
-    padding: 10,
-    borderRadius: 20,
-    alignItems: "center",
-  },
-  selectedSmallButton: {
-    backgroundColor: "#a87cb3",
-  },
+  container: { flex: 1 },
+  scroll: { flexGrow: 1, justifyContent: "center", alignItems: "center", paddingVertical: 20 },
+  box: { width: "90%", borderRadius: 20, padding: 20, alignItems: "stretch", elevation: 3, marginTop: 30, marginBottom: 30 },
+  titleRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 10 },
+  title: { fontSize: 24, fontWeight: "bold" },
+  subtitle: { fontSize: 18, fontWeight: "bold", marginTop: 20, marginBottom: 10 },
+  label: { fontSize: 14, marginTop: 10 },
+  text: { fontSize: 16, marginBottom: 5 },
+  input: { borderWidth: 1, borderColor: "#ccc", borderRadius: 10, padding: 10, marginTop: 5 },
+  themeButton: { paddingVertical: 12, paddingHorizontal: 20, borderRadius: 20, marginTop: 20, alignItems: "center" },
+  logoutButton: { backgroundColor: "#d9534f", paddingVertical: 12, paddingHorizontal: 20, borderRadius: 20, marginTop: 10, alignItems: "center" },
+  saveButton: { paddingVertical: 12, paddingHorizontal: 20, borderRadius: 20, marginTop: 20, alignItems: "center" },
+  buttonText: { fontWeight: "bold" },
+  divider: { height: 1, backgroundColor: "#eee", marginVertical: 20 },
+  option: { padding: 10, borderRadius: 20, marginVertical: 5, alignItems: "center" },
+  selectedOption: {},
+  optionText: { fontSize: 16 },
 });

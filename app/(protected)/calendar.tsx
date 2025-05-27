@@ -10,6 +10,7 @@ import { auth, db } from "../../config/firebase";
 import { doc, getDoc } from "firebase/firestore";
 import { useFocusEffect } from "@react-navigation/native";
 import { scheduleCycleHealthWarnings } from "../../services/notifications";
+import { useTheme } from "../../context/ThemeContext";
 
 const getLocalDateString = (date: Date) => {
   const offset = date.getTimezoneOffset();
@@ -111,6 +112,7 @@ export default function CalendarScreen() {
   const [logDetails, setLogDetails] = useState<(string | JSX.Element)[] | null>(null);
   const [lastTap, setLastTap] = useState<number | null>(null);
   const tapTimeout = useRef<NodeJS.Timeout | null>(null);
+  const { theme } = useTheme();
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -215,19 +217,13 @@ export default function CalendarScreen() {
   const markedDates: Record<string, any> = {};
 
   if (ciclo) {
-    const {
-      menstruationDaysPassados,
-      futurasMenstruacoes,
-      inicioFertilidade,
-      fimFertilidade,
-      ovulacao
-    } = ciclo;
+    const { menstruationDaysPassados, futurasMenstruacoes, inicioFertilidade, fimFertilidade, ovulacao } = ciclo;
 
     menstruationDaysPassados?.forEach((dateStr) => {
       markedDates[dateStr] = {
         customStyles: {
-          container: { backgroundColor: "#a87cb3", borderRadius: 5 },
-          text: { color: "#fff", fontWeight: "bold" }
+          container: { backgroundColor: theme.calendar.selectedDayBackground, borderRadius: 5 },
+          text: { color: theme.calendar.selectedDayTextColor, fontWeight: "bold" }
         },
         type: "menstruation",
       };
@@ -241,8 +237,8 @@ export default function CalendarScreen() {
         if (!markedDates[dateStr]) {
           markedDates[dateStr] = {
             customStyles: {
-              container: { backgroundColor: "#d6a3e6", borderRadius: 5 },
-              text: { color: "#fff", fontWeight: "bold" }
+              container: { backgroundColor: theme.calendar.selectedDayBackground, borderRadius: 5 },
+              text: { color: theme.calendar.selectedDayTextColor, fontWeight: "bold" }
             },
             type: "menstruation",
           };
@@ -272,19 +268,19 @@ export default function CalendarScreen() {
       },
       type: "ovulation",
     };
-  }  
+  }
 
   if (markedDates[todayStr]) {
     markedDates[todayStr].customStyles.container = {
       ...markedDates[todayStr].customStyles.container,
       borderWidth: 2,
-      borderColor: "#6F519C",
+      borderColor: theme.primary,
     };
   } else {
     markedDates[todayStr] = {
       customStyles: {
-        container: { borderWidth: 2, borderColor: "#a87cb3", borderRadius: 5 },
-        text: { color: "#6a3b7d", fontWeight: "bold" },
+        container: { borderWidth: 2, borderColor: theme.primary, borderRadius: 5 },
+        text: { color: theme.primary, fontWeight: "bold" },
       },
       type: "today",
     };
@@ -317,71 +313,72 @@ export default function CalendarScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
       <BackButton route="/home" />
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        <View style={styles.calendarWrapper}>
+        <View style={[styles.calendarWrapper, { backgroundColor: theme.secondary }]}>
           <Calendar
-            current={todayStr}
-            onDayPress={handleDayPress}
-            markingType={"custom"}
-            markedDates={markedDates}
-            theme={{
-              backgroundColor: "#f5e9f0",
-              calendarBackground: "#fff",
-              textSectionTitleColor: "#6a3b7d",
-              todayTextColor: "#6a3b7d",
-              dayTextColor: "#333",
-              arrowColor: "#a87cb3",
-              monthTextColor: "#6a3b7d",
-            }}
-            firstDay={1}
-            locale={"pt-BR"}
-            dayComponent={({ date, state }: { date: { dateString: string; day: number }; state: string }) => {
-              const dateString = date?.dateString;
-              return (
-                <TouchableOpacity onPress={() => handleDayPress({ dateString })}>
-                  <View
+          current={todayStr}
+          onDayPress={handleDayPress}
+          markingType="custom"
+          markedDates={markedDates}
+          theme={{
+            backgroundColor: theme.background,
+            calendarBackground: theme.secondary,
+            textSectionTitleColor: theme.primary,
+            todayTextColor: theme.primary,
+            dayTextColor: theme.text,
+            arrowColor: theme.primary,
+            monthTextColor: theme.primary,
+          }}
+          firstDay={1}
+          locale="pt-BR"
+          dayComponent={({ date, state }: { date: { dateString: string; day: number }; state: string }) => {
+            const dateString = date?.dateString;
+            return (
+              <TouchableOpacity onPress={() => handleDayPress({ dateString })}>
+                <View
+                  style={[
+                    styles.dayContainer,
+                    markedDates[dateString]?.customStyles?.container,
+                    state === "disabled" && styles.disabledDay,
+                  ]}
+                >
+                  <Text
                     style={[
-                      styles.dayContainer,
-                      markedDates[dateString]?.customStyles?.container,
-                      state === "disabled" && styles.disabledDay,
+                      styles.dayText,
+                      markedDates[dateString]?.customStyles?.text,
+                      { color: theme.text },
+                      state === "disabled" && styles.disabledDayText,
                     ]}
                   >
-                    <Text
-                      style={[
-                        styles.dayText,
-                        markedDates[dateString]?.customStyles?.text,
-                        state === "disabled" && styles.disabledDayText,
-                      ]}
-                    >
-                      {date?.day}
-                    </Text>
-                    {markedDates[dateString]?.type === "fertility" && (
-                      <FontAwesome5 name="leaf" size={10} color="#333" style={styles.icon} />
-                    )}
-                    {markedDates[dateString]?.type === "ovulation" && (
-                      <FontAwesome5 name="egg" size={10} color="#333" style={styles.icon} />
-                    )}
-                  </View>
-                </TouchableOpacity>
-              );
-            }}
-          />
+                    {date?.day}
+                  </Text>
+                  {markedDates[dateString]?.type === "fertility" && (
+                    <FontAwesome5 name="leaf" size={10} color="#333" style={styles.icon} />
+                  )}
+                  {markedDates[dateString]?.type === "ovulation" && (
+                    <FontAwesome5 name="egg" size={10} color="#333" style={styles.icon} />
+                  )}
+                </View>
+              </TouchableOpacity>
+            );
+          }}
+        />
         </View>
 
-        <View style={styles.infoContainer}>
+        <View style={[styles.infoContainer, { backgroundColor: theme.secondary }]}>
           <View style={styles.infoHeader}>
-            <Text style={styles.infoTitle}>{formatarDiaSemana(selectedDate)}</Text>
+            <Text style={[styles.infoTitle, { color: theme.primary }]}>{formatarDiaSemana(selectedDate)}</Text>
             <TouchableOpacity
-              style={styles.editButton}
+              style={[styles.editButton, { backgroundColor: theme.primary }]}
               onPress={() => router.push({ pathname: "/(protected)/EditCycle", params: { date: selectedDate } })}
             >
               <Text style={styles.editButtonText}>Editar</Text>
             </TouchableOpacity>
           </View>
 
-          <Text style={styles.infoSubText}>
+          <Text style={[styles.infoSubText, { color: theme.primary }]}>
             {markedDates[selectedDate]?.type === "menstruation"
               ? "Menstruação"
               : markedDates[selectedDate]?.type === "ovulation"
@@ -393,7 +390,7 @@ export default function CalendarScreen() {
               : "Fora do período fértil"}
           </Text>
 
-          <Text style={styles.infoDescription}>
+          <Text style={[styles.infoDescription, { color: theme.text }]}>
             {markedDates[selectedDate]?.type
               ? "Alta - Probabilidade de engravidar"
               : "Baixa - Fora do período fértil"}
@@ -402,7 +399,7 @@ export default function CalendarScreen() {
           {logDetails ? (
             Array.isArray(logDetails) ? (
               logDetails.map((det, idx) => (
-                <Text key={idx} style={styles.infoNotes}>
+                <Text key={idx} style={[styles.infoNotes, { color: theme.text }]}>
                   {det}
                 </Text>
               ))
@@ -410,7 +407,7 @@ export default function CalendarScreen() {
               <Text style={styles.infoNotes}>{logDetails}</Text>
             )
           ) : (
-            <Text style={styles.infoNotes}>Nenhuma anotação para esse dia.</Text>
+            <Text style={[styles.infoNotes, { color: theme.text }]}>Nenhuma anotação para esse dia.</Text>
           )}
         </View>
       </ScrollView>

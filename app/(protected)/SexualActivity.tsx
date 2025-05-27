@@ -8,18 +8,18 @@ import {
 } from "react-native";
 import { FontAwesome6 } from "@expo/vector-icons";
 import BackButton from "../../components/BackButton";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useLocalSearchParams } from "expo-router";
 import { auth, db } from "../../config/firebase";
 import { doc, getDoc, setDoc } from "firebase/firestore";
+import { useTheme } from "../../context/ThemeContext";
 
 export default function SexualActivityScreen() {
   const { date } = useLocalSearchParams<{ date: string }>();
-  const router = useRouter();
-
   const [pratica, setPratica] = useState<"sim" | "nao" | null>(null);
   const [preservativo, setPreservativo] = useState<"sim" | "nao" | null>(null);
   const [orgasmo, setOrgasmo] = useState<"sim" | "nao" | null>(null);
   const [vezes, setVezes] = useState(1);
+  const { theme } = useTheme();
 
   const salvarDados = async (
     novoPratica = pratica,
@@ -106,196 +106,145 @@ export default function SexualActivityScreen() {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <BackButton />
-      <Text style={styles.title}>Relação Sexual</Text>
+    <ScrollView style={{ backgroundColor: theme.background }}>
+      <View style={[styles.container, { backgroundColor: theme.background }]}>
+        <BackButton />
+        <Text style={[styles.title, { color: theme.primary }]}>Relação Sexual</Text>
 
-      {/* Praticou ou Não Praticou */}
-      <View style={styles.card}>
-        <Text style={styles.subtitle}>Atividade Sexual</Text>
-        <View style={styles.row}>
-          <TouchableOpacity
-            onPress={() => alterarPratica("sim")}
-            style={[
-              styles.iconBox,
-              pratica === "sim" && styles.selectedBox,
-            ]}
-          >
-            <FontAwesome6
-              name="heart"
-              size={24}
-              solid
-              color={pratica === "sim" ? "#fff" : "#6a3b7d"}
-            />
-            <Text
-              style={[
-                styles.iconLabel,
-                pratica === "sim" && { color: "#fff" },
-              ]}
-            >
-              Praticou
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            onPress={() => alterarPratica("nao")}
-            style={[
-              styles.iconBox,
-              pratica === "nao" && styles.selectedBox,
-            ]}
-          >
-            <FontAwesome6
-              name="ban"
-              size={24}
-              color={pratica === "nao" ? "#fff" : "#6a3b7d"}
-            />
-            <Text
-              style={[
-                styles.iconLabel,
-                pratica === "nao" && { color: "#fff" },
-              ]}
-            >
-              Não praticou
-            </Text>
-          </TouchableOpacity>
+        {/* Praticou ou Não Praticou */}
+        <View style={[styles.card, { backgroundColor: theme.secondary }]}>
+          <Text style={[styles.subtitle, { color: theme.primary }]}>Atividade Sexual</Text>
+          <View style={styles.row}>
+            {["sim", "nao"].map((valor) => (
+              <TouchableOpacity
+                key={valor}
+                onPress={() => alterarPratica(valor as "sim" | "nao")}
+                style={[
+                  styles.iconBox,
+                  { backgroundColor: theme.secondary },
+                  pratica === valor && { backgroundColor: theme.button },
+                ]}
+              >
+                <FontAwesome6
+                  name={valor === "sim" ? "heart" : "ban"}
+                  size={24}
+                  solid
+                  color={pratica === valor ? theme.buttonText : theme.primary}
+                />
+                <Text
+                  style={[
+                    styles.iconLabel,
+                    { color: theme.primary },
+                    pratica === valor && { color: theme.buttonText },
+                  ]}
+                >
+                  {valor === "sim" ? "Praticou" : "Não praticou"}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
         </View>
-      </View>
 
-      {/* Preservativo */}
-      <View style={styles.card}>
-        <Text style={styles.subtitle}>Preservativo nas relações</Text>
-        <View style={styles.row}>
-          <TouchableOpacity
-            onPress={() => alterarPreservativo("sim")}
-            style={[
-              styles.iconBox,
-              preservativo === "sim" && styles.selectedBox,
-              pratica === "nao" && { opacity: 0.5 },
-            ]}
-            disabled={pratica === "nao"}
-          >
-            <FontAwesome6
-              name="shield-heart"
-              size={24}
-              solid
-              color={preservativo === "sim" ? "#fff" : "#6a3b7d"}
-            />
-            <Text
-              style={[
-                styles.iconLabel,
-                preservativo === "sim" && { color: "#fff" },
-              ]}
-            >
-              Protegido
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            onPress={() => alterarPreservativo("nao")}
-            style={[
-              styles.iconBox,
-              preservativo === "nao" && styles.selectedBox,
-              pratica === "nao" && { opacity: 0.5 },
-            ]}
-            disabled={pratica === "nao"}
-          >
-            <FontAwesome6
-              name="ban"
-              size={24}
-              color={preservativo === "nao" ? "#fff" : "#6a3b7d"}
-            />
-            <Text
-              style={[
-                styles.iconLabel,
-                preservativo === "nao" && { color: "#fff" },
-              ]}
-            >
-              Desprotegido
-            </Text>
-          </TouchableOpacity>
+        {/* Preservativo */}
+        <View style={[styles.card, { backgroundColor: theme.secondary }]}>
+          <Text style={[styles.subtitle, { color: theme.primary }]}>Preservativo nas relações</Text>
+          <View style={styles.row}>
+            {["sim", "nao"].map((valor) => (
+              <TouchableOpacity
+                key={valor}
+                onPress={() => alterarPreservativo(valor as "sim" | "nao")}
+                style={[
+                  styles.iconBox,
+                  { backgroundColor: theme.secondary },
+                  preservativo === valor && { backgroundColor: theme.button },
+                  pratica === "nao" && { opacity: 0.5 },
+                ]}
+                disabled={pratica === "nao"}
+              >
+                <FontAwesome6
+                  name={valor === "sim" ? "shield-heart" : "ban"}
+                  size={24}
+                  solid
+                  color={preservativo === valor ? theme.buttonText : theme.primary}
+                />
+                <Text
+                  style={[
+                    styles.iconLabel,
+                    { color: theme.primary },
+                    preservativo === valor && { color: theme.buttonText },
+                  ]}
+                >
+                  {valor === "sim" ? "Protegido" : "Desprotegido"}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
         </View>
-      </View>
 
-      {/* Orgasmo */}
-      <View style={styles.card}>
-        <Text style={styles.subtitle}>Orgasmo feminino</Text>
-        <View style={styles.row}>
-          <TouchableOpacity
-            onPress={() => alterarOrgasmo("sim")}
-            style={[
-              styles.iconBox,
-              orgasmo === "sim" && styles.selectedBox,
-              pratica === "nao" && { opacity: 0.5 },
-            ]}
-            disabled={pratica === "nao"}
-          >
-            <FontAwesome6
-              name="face-kiss-beam"
-              size={24}
-              solid
-              color={orgasmo === "sim" ? "#fff" : "#6a3b7d"}
-            />
-            <Text
-              style={[
-                styles.iconLabel,
-                orgasmo === "sim" && { color: "#fff" },
-              ]}
-            >
-              Sim
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            onPress={() => alterarOrgasmo("nao")}
-            style={[
-              styles.iconBox,
-              orgasmo === "nao" && styles.selectedBox,
-              pratica === "nao" && { opacity: 0.5 },
-            ]}
-            disabled={pratica === "nao"}
-          >
-            <FontAwesome6
-              name="face-sad-tear"
-              size={24}
-              color={orgasmo === "nao" ? "#fff" : "#6a3b7d"}
-            />
-            <Text
-              style={[
-                styles.iconLabel,
-                orgasmo === "nao" && { color: "#fff" },
-              ]}
-            >
-              Não
-            </Text>
-          </TouchableOpacity>
+        {/* Orgasmo */}
+        <View style={[styles.card, { backgroundColor: theme.secondary }]}>
+          <Text style={[styles.subtitle, { color: theme.primary }]}>Orgasmo feminino</Text>
+          <View style={styles.row}>
+            {["sim", "nao"].map((valor) => (
+              <TouchableOpacity
+                key={valor}
+                onPress={() => alterarOrgasmo(valor as "sim" | "nao")}
+                style={[
+                  styles.iconBox,
+                  { backgroundColor: theme.secondary },
+                  orgasmo === valor && { backgroundColor: theme.button },
+                  pratica === "nao" && { opacity: 0.5 },
+                ]}
+                disabled={pratica === "nao"}
+              >
+                <FontAwesome6
+                  name={valor === "sim" ? "face-kiss-beam" : "face-sad-tear"}
+                  size={24}
+                  solid
+                  color={orgasmo === valor ? theme.buttonText : theme.primary}
+                />
+                <Text
+                  style={[
+                    styles.iconLabel,
+                    { color: theme.primary },
+                    orgasmo === valor && { color: theme.buttonText },
+                  ]}
+                >
+                  {valor === "sim" ? "Sim" : "Não"}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
         </View>
-      </View>
 
-      {/* Número de vezes */}
-      <View style={styles.card}>
-        <Text style={styles.subtitle}>Número de vezes</Text>
-        <View style={[styles.row, { justifyContent: "center" }]}>
-          <TouchableOpacity
-            onPress={() => alterarVezes(vezes - 1)}
-            style={[
-              styles.counterButton,
-              pratica === "nao" && { opacity: 0.5 },
-            ]}
-            disabled={pratica === "nao"}
-          >
-            <Text style={styles.counterText}>-</Text>
-          </TouchableOpacity>
-          <Text style={styles.countValue}>{vezes}</Text>
-          <TouchableOpacity
-            onPress={() => alterarVezes(vezes + 1)}
-            style={[
-              styles.counterButton,
-              pratica === "nao" && { opacity: 0.5 },
-            ]}
-            disabled={pratica === "nao"}
-          >
-            <Text style={styles.counterText}>+</Text>
-          </TouchableOpacity>
+        {/* Número de vezes */}
+        <View style={[styles.card, { backgroundColor: theme.secondary }]}>
+          <Text style={[styles.subtitle, { color: theme.primary }]}>Número de vezes</Text>
+          <View style={[styles.row, { justifyContent: "center" }]}>
+            <TouchableOpacity
+              onPress={() => alterarVezes(vezes - 1)}
+              style={[
+                styles.counterButton,
+                { backgroundColor: theme.button },
+                pratica === "nao" && { opacity: 0.5 },
+              ]}
+              disabled={pratica === "nao"}
+            >
+              <Text style={[styles.counterText, { color: theme.buttonText }]}>-</Text>
+            </TouchableOpacity>
+            <Text style={[styles.countValue, { color: theme.primary }]}>{vezes}</Text>
+            <TouchableOpacity
+              onPress={() => alterarVezes(vezes + 1)}
+              style={[
+                styles.counterButton,
+                { backgroundColor: theme.button },
+                pratica === "nao" && { opacity: 0.5 },
+              ]}
+              disabled={pratica === "nao"}
+            >
+              <Text style={[styles.counterText, { color: theme.buttonText }]}>+</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
     </ScrollView>
@@ -304,19 +253,16 @@ export default function SexualActivityScreen() {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: "#F6E4F6",
     paddingVertical: 60,
     paddingHorizontal: 20,
   },
   title: {
     fontSize: 20,
     fontWeight: "bold",
-    color: "#6a3b7d",
     textAlign: "center",
     marginBottom: 20,
   },
   card: {
-    backgroundColor: "#fff",
     borderRadius: 10,
     padding: 15,
     marginBottom: 30,
@@ -325,7 +271,6 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 16,
     fontWeight: "bold",
-    color: "#6a3b7d",
     marginBottom: 10,
   },
   row: {
@@ -336,25 +281,19 @@ const styles = StyleSheet.create({
   iconBox: {
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#fff",
     padding: 10,
     margin: 8,
     width: 100,
-  },
-  selectedBox: {
-    backgroundColor: "#a87cb3",
     borderRadius: 8,
   },
   iconLabel: {
     marginTop: 5,
-    color: "#6a3b7d",
     fontSize: 12,
   },
   counterButton: {
     width: 40,
     height: 40,
     borderRadius: 10,
-    backgroundColor: "#E0AAFF",
     alignItems: "center",
     justifyContent: "center",
     marginHorizontal: 15,
@@ -362,12 +301,10 @@ const styles = StyleSheet.create({
   counterText: {
     fontSize: 22,
     fontWeight: "bold",
-    color: "#6a3b7d",
   },
   countValue: {
     fontSize: 20,
     fontWeight: "bold",
-    color: "#6a3b7d",
     alignSelf: "center",
   },
 });

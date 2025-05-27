@@ -5,6 +5,7 @@ import { useRouter } from "expo-router";
 import { auth, db } from "../../config/firebase";
 import { doc, updateDoc, getDoc, Timestamp } from "firebase/firestore";
 import BackButton from "../../components/BackButton";
+import { useTheme } from "../../context/ThemeContext";
 
 function formatToISO(dateStr: string): string {
   if (/^\d{2}\/\d{2}\/\d{4}$/.test(dateStr)) {
@@ -18,6 +19,7 @@ export default function SelectMenstruation() {
   const router = useRouter();
   const [selectedDates, setSelectedDates] = useState<Record<string, boolean>>({});
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth() + 1);
+  const { theme } = useTheme();
 
   useEffect(() => {
     const today = new Date();
@@ -80,11 +82,13 @@ export default function SelectMenstruation() {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
       <BackButton route="/home" />
-      <Text style={styles.headerTitle}>Selecionar Menstruação</Text>
+      <Text style={[styles.headerTitle, { color: theme.primary }]}>
+        Selecionar Menstruação
+      </Text>
 
-      <View style={styles.calendarWrapper}>
+      <View style={[styles.calendarWrapper, { backgroundColor: theme.secondary }]}>
         <Calendar
           onDayPress={handleDaySelect}
           onMonthChange={({ month }: { month: number }) => setCurrentMonth(month)}
@@ -94,19 +98,19 @@ export default function SelectMenstruation() {
               date,
               {
                 customStyles: {
-                  container: { backgroundColor: "#a87cb3", borderRadius: 5 },
-                  text: { color: "#fff", fontWeight: "bold" },
+                  container: { backgroundColor: theme.calendar.selectedDayBackground, borderRadius: 5 },
+                  text: { color: theme.calendar.selectedDayTextColor, fontWeight: "bold" },
                 },
               },
             ])
           )}
           theme={{
-            backgroundColor: "#f5e9f0",
-            calendarBackground: "#fff",
-            todayTextColor: "#a87cb3",
-            dayTextColor: "#333",
-            arrowColor: "#a87cb3",
-            monthTextColor: "#6a3b7d",
+            backgroundColor: theme.calendar.background,
+            calendarBackground: theme.secondary,
+            todayTextColor: theme.calendar.todayColor,
+            dayTextColor: theme.calendar.textColor,
+            arrowColor: theme.calendar.arrowColor,
+            monthTextColor: theme.calendar.monthTextColor,
           }}
           style={styles.calendar}
           dayComponent={({ date }: { date: { dateString: string; day: number; month: number } }) => {
@@ -116,14 +120,22 @@ export default function SelectMenstruation() {
             return (
               <TouchableOpacity onPress={() => handleDaySelect(date)} disabled={isOutOfMonth}>
                 <View style={styles.dayContainer}>
-                  <Text style={[styles.dayText, isOutOfMonth && styles.outOfMonthText]}>
+                  <Text
+                    style={[
+                      styles.dayText,
+                      { color: theme.text },
+                      isOutOfMonth && styles.outOfMonthText,
+                    ]}
+                  >
                     {date?.day}
                   </Text>
                   {!isOutOfMonth && (
                     <View
                       style={[
                         styles.selectionIndicator,
-                        isSelected ? styles.selectedIndicator : styles.defaultIndicator,
+                        isSelected
+                          ? { backgroundColor: theme.calendar.selectedDayBackground }
+                          : { borderColor: theme.calendar.selectedDayBackground, borderWidth: 2, backgroundColor: "transparent" },
                       ]}
                     />
                   )}
@@ -134,8 +146,8 @@ export default function SelectMenstruation() {
         />
       </View>
 
-      <TouchableOpacity style={styles.saveButton} onPress={handleConfirm}>
-        <Text style={styles.saveText}>Salvar</Text>
+      <TouchableOpacity style={[styles.saveButton, { backgroundColor: theme.button }]} onPress={handleConfirm}>
+        <Text style={[styles.saveText, { color: theme.buttonText }]}>Salvar</Text>
       </TouchableOpacity>
     </View>
   );
@@ -144,18 +156,15 @@ export default function SelectMenstruation() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F6E4F6",
     alignItems: "center",
     paddingVertical: 30,
   },
   headerTitle: {
     fontSize: 20,
     fontWeight: "bold",
-    color: "#6a3b7d",
     marginBottom: 20,
   },
   calendarWrapper: {
-    backgroundColor: "#fff",
     borderRadius: 10,
     padding: 15,
     width: "90%",
@@ -178,31 +187,20 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     marginTop: 5,
   },
-  defaultIndicator: {
-    borderWidth: 2,
-    borderColor: "#a87cb3",
-    backgroundColor: "transparent",
-  },
-  selectedIndicator: {
-    backgroundColor: "#a87cb3",
-  },
   dayText: {
     fontSize: 18,
     fontWeight: "bold",
-    color: "#333",
   },
   outOfMonthText: {
     color: "#ccc",
   },
   saveButton: {
     marginTop: 25,
-    backgroundColor: "#a87cb3",
     paddingVertical: 14,
     paddingHorizontal: 60,
     borderRadius: 25,
   },
   saveText: {
-    color: "#fff",
     fontSize: 18,
     fontWeight: "bold",
   },

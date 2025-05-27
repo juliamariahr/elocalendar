@@ -1,9 +1,11 @@
 import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useTheme } from '../context/ThemeContext';
 
 export default function BottomNav() {
   const router = useRouter();
+  const { theme } = useTheme();
 
   const openCalendar = () => {
     router.push('/calendar');
@@ -14,21 +16,24 @@ export default function BottomNav() {
   };
 
   return (
-    <View style={styles.navBar}>
+    <View style={[styles.navBar, { backgroundColor: theme.bottomNav.background }]}>
       <TouchableOpacity onPress={() => router.push('/home')}>
-        <Ionicons name="home" size={28} color="#fff" />
+        <Ionicons name="home" size={28} color={theme.bottomNav.iconColor} />
       </TouchableOpacity>
       <TouchableOpacity onPress={openCalendar}>
-        <Ionicons name="calendar-outline" size={28} color="#fff" />
+        <Ionicons name="calendar-outline" size={28} color={theme.bottomNav.iconColor} />
       </TouchableOpacity>
-      <TouchableOpacity style={styles.plusButton} onPress={openMenstruationSelection}>
-        <Ionicons name="add" size={36} color="#fff" />
+      <TouchableOpacity
+        style={[styles.plusButton, { backgroundColor: theme.bottomNav.plusButtonBackground }]}
+        onPress={openMenstruationSelection}
+      >
+        <Ionicons name="add" size={36} color={theme.bottomNav.plusButtonIconColor} />
       </TouchableOpacity>
       <TouchableOpacity>
-        <Ionicons name="bar-chart-outline" size={28} color="#fff" />
+        <Ionicons name="bar-chart-outline" size={28} color={theme.bottomNav.iconColor} />
       </TouchableOpacity>
       <TouchableOpacity onPress={() => router.push('/profile')}>
-        <Ionicons name="person-outline" size={28} color="#fff" />
+        <Ionicons name="person-outline" size={28} color={theme.bottomNav.iconColor} />
       </TouchableOpacity>
     </View>
   );
@@ -41,12 +46,10 @@ const styles = StyleSheet.create({
     bottom: 20,
     width: '100%',
     justifyContent: 'space-around',
-    backgroundColor: '#7e57c2',
     paddingVertical: 15,
     borderRadius: 25,
   },
   plusButton: {
-    backgroundColor: '#ff69b4',
     width: 55,
     height: 55,
     borderRadius: 30,

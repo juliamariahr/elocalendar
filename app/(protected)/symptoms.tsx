@@ -7,11 +7,12 @@ import {
   ScrollView,
   Dimensions,
 } from "react-native";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useLocalSearchParams } from "expo-router";
 import { FontAwesome6 } from "@expo/vector-icons";
 import { auth, db } from "../../config/firebase";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import BackButton from "../../components/BackButton";
+import { useTheme } from "../../context/ThemeContext";
 
 const sintomas = {
   cabeça: [
@@ -77,6 +78,7 @@ const sintomas = {
 };
 
 export default function AllSymptomsScreen() {
+  const { theme } = useTheme();
   const { date } = useLocalSearchParams<{ date: string }>();
   const [selecionados, setSelecionados] = useState<string[]>([]);
 
@@ -116,15 +118,15 @@ export default function AllSymptomsScreen() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#F6E4F6" }}>
+    <View style={{ flex: 1, backgroundColor: theme.background }}>
       <BackButton />
       <View style={styles.header}>
-        <Text style={styles.pageTitle}>Sintomas</Text>
+        <Text style={[styles.pageTitle, { color: theme.primary }]}>Sintomas</Text>
       </View>
       <ScrollView contentContainerStyle={styles.container}>
         {Object.entries(sintomas).map(([categoria, lista]) => (
-          <View key={categoria} style={styles.card}>
-            <Text style={styles.categoria}>
+          <View key={categoria} style={[styles.card, { backgroundColor: theme.secondary }]}>
+            <Text style={[styles.categoria, { color: theme.primary }]}>
               {categoria.charAt(0).toUpperCase() + categoria.slice(1)}
             </Text>
             <View style={styles.grid}>
@@ -133,7 +135,8 @@ export default function AllSymptomsScreen() {
                   key={item.id}
                   style={[
                     styles.iconBox,
-                    selecionados.includes(item.id) && styles.selected,
+                    { backgroundColor: theme.secondary },
+                    selecionados.includes(item.id) && { backgroundColor: theme.button },
                   ]}
                   onPress={() => toggleSintoma(item.id)}
                 >
@@ -141,12 +144,12 @@ export default function AllSymptomsScreen() {
                     name={item.icon as any}
                     size={22}
                     solid
-                    color={selecionados.includes(item.id) ? "#fff" : "#3C096C"}
+                    color={selecionados.includes(item.id) ? theme.buttonText : theme.primary}
                   />
                   <Text
                     style={[
                       styles.label,
-                      selecionados.includes(item.id) && { color: "#fff" },
+                      { color: selecionados.includes(item.id) ? theme.buttonText : theme.primary },
                     ]}
                   >
                     {item.label}
@@ -170,14 +173,12 @@ const styles = StyleSheet.create({
   pageTitle: {
     fontSize: 22,
     fontWeight: "bold",
-    color: "#6a3b7d",
   },
   container: {
     paddingBottom: 30,
     paddingHorizontal: 10,
   },
   card: {
-    backgroundColor: "#fff",
     borderRadius: 12,
     padding: 12,
     marginBottom: 20,
@@ -187,7 +188,6 @@ const styles = StyleSheet.create({
   categoria: {
     fontSize: 16,
     fontWeight: "bold",
-    color: "#6a3b7d",
     marginBottom: 10,
   },
   grid: {
@@ -201,16 +201,11 @@ const styles = StyleSheet.create({
     margin: 4,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#fff",
     borderRadius: 8,
-  },
-  selected: {
-    backgroundColor: "#a87cb3",
   },
   label: {
     fontSize: 10,
     marginTop: 5,
     textAlign: "center",
-    color: "#6a3b7d",
   },
 });

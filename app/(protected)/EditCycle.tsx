@@ -12,6 +12,7 @@ import { FontAwesome5, FontAwesome6, MaterialIcons, Feather } from "@expo/vector
 import { auth, db } from "../../config/firebase";
 import { doc, getDoc, onSnapshot, setDoc } from "firebase/firestore";
 import BackButton from "../../components/BackButton";
+import { useTheme } from "../../context/ThemeContext";
 
 const sintomasDisponiveis = [
   { id: "colica", label: "Cólica", icon: "sad-cry" },
@@ -40,6 +41,7 @@ const fluxoOptions = [
 export default function EditCycleLog() {
   const { date } = useLocalSearchParams<{ date: string }>();
   const router = useRouter();
+  const { theme } = useTheme();
 
   const [nota, setNota] = useState("");
   const [editando, setEditando] = useState(false);
@@ -128,12 +130,7 @@ export default function EditCycleLog() {
       const novoValor = !atividadeSexual.pratica;
       atualizado = novoValor
         ? { ...atividadeSexual, pratica: true }
-        : {
-            pratica: false,
-            preservativo: false,
-            orgasmo: false,
-            vezes: 0,
-          };
+        : { pratica: false, preservativo: false, orgasmo: false, vezes: 0 };
     } else {
       atualizado = {
         ...atividadeSexual,
@@ -147,47 +144,48 @@ export default function EditCycleLog() {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <ScrollView contentContainerStyle={[styles.container, { backgroundColor: theme.background }]}>
       <BackButton route="/calendar" />
-      <Text style={styles.title}>Anotações</Text>
+      <Text style={[styles.title, { color: theme.primary }]}>Anotações</Text>
 
       {/* Notas */}
-      <View style={styles.card}>
+      <View style={[styles.card, { backgroundColor: theme.secondary }]}>
         <View style={styles.header}>
-          <Text style={styles.subtitle}>Notas</Text>
+          <Text style={[styles.subtitle, { color: theme.primary }]}>Notas</Text>
           {!editando && (
             <TouchableOpacity onPress={() => setEditando(true)}>
-              <MaterialIcons name="edit" size={20} color="#6a3b7d" />
+              <MaterialIcons name="edit" size={20} color={theme.primary} />
             </TouchableOpacity>
           )}
         </View>
         {editando ? (
           <>
             <TextInput
-              style={[styles.textInput, { minHeight: 120 }]}
+              style={[styles.textInput, { backgroundColor: theme.secondary, color: theme.text }]}
               multiline
               numberOfLines={6}
               value={nota}
               onChangeText={setNota}
               placeholder="Digite suas observações..."
+              placeholderTextColor={theme.text}
             />
             <TouchableOpacity onPress={salvarNota}>
-              <Text style={styles.save}>Salvar</Text>
+              <Text style={[styles.save, { color: theme.button }]}>Salvar</Text>
             </TouchableOpacity>
           </>
         ) : (
-          <Text style={styles.readText}>
+          <Text style={[styles.readText, { color: theme.text }]}>
             {nota ? nota : "Nenhuma nota registrada para este dia."}
           </Text>
         )}
       </View>
 
       {/* Sintomas */}
-      <View style={styles.card}>
+      <View style={[styles.card, { backgroundColor: theme.secondary }]}>
         <View style={styles.header}>
-          <Text style={styles.subtitle}>Sintomas</Text>
+          <Text style={[styles.subtitle, { color: theme.primary }]}>Sintomas</Text>
           <TouchableOpacity onPress={() => router.push(`/symptoms?date=${date}`)}>
-            <Feather name="chevron-right" size={20} color="#6a3b7d" />
+            <Feather name="chevron-right" size={20} color={theme.primary} />
           </TouchableOpacity>
         </View>
         <View style={[styles.row, { flexWrap: "wrap", justifyContent: "space-between" }]}>
@@ -202,10 +200,10 @@ export default function EditCycleLog() {
                   name={item.icon as any}
                   size={24}
                   solid={sintomas.includes(item.id)}
-                  color={sintomas.includes(item.id) ? "#a87cb3" : "#ccc"}
+                  color={sintomas.includes(item.id) ? theme.button : "#ccc"}
                 />
               </View>
-              <Text style={[styles.iconeLabel, sintomas.includes(item.id) && { color: "#a87cb3" }]}>
+              <Text style={[styles.iconeLabel, { color: sintomas.includes(item.id) ? theme.button : theme.text }]}>
                 {item.label}
               </Text>
             </TouchableOpacity>
@@ -214,11 +212,11 @@ export default function EditCycleLog() {
       </View>
 
       {/* Humores */}
-      <View style={styles.card}>
+      <View style={[styles.card, { backgroundColor: theme.secondary }]}>
         <View style={styles.header}>
-          <Text style={styles.subtitle}>Humores</Text>
+          <Text style={[styles.subtitle, { color: theme.primary }]}>Humores</Text>
           <TouchableOpacity onPress={() => router.push(`/moods?date=${date}`)}>
-            <Feather name="chevron-right" size={20} color="#6a3b7d" />
+            <Feather name="chevron-right" size={20} color={theme.primary} />
           </TouchableOpacity>
         </View>
         <View style={[styles.row, { flexWrap: "wrap", justifyContent: "space-between" }]}>
@@ -233,10 +231,10 @@ export default function EditCycleLog() {
                   name={item.icon as any}
                   size={24}
                   solid={humores.includes(item.id)}
-                  color={humores.includes(item.id) ? "#a87cb3" : "#ccc"}
+                  color={humores.includes(item.id) ? theme.button : "#ccc"}
                 />
               </View>
-              <Text style={[styles.iconeLabel, humores.includes(item.id) && { color: "#a87cb3" }]}>
+              <Text style={[styles.iconeLabel, { color: humores.includes(item.id) ? theme.button : theme.text }]}>
                 {item.label}
               </Text>
             </TouchableOpacity>
@@ -245,8 +243,8 @@ export default function EditCycleLog() {
       </View>
 
       {/* Fluxo */}
-      <View style={styles.card}>
-        <Text style={styles.subtitle}>Fluxo Menstrual</Text>
+      <View style={[styles.card, { backgroundColor: theme.secondary }]}>
+        <Text style={[styles.subtitle, { color: theme.primary }]}>Fluxo Menstrual</Text>
         <View style={styles.row}>
           {fluxoOptions.map((item) => (
             <TouchableOpacity key={item.nivel} onPress={() => selecionarFluxo(item.nivel)}>
@@ -262,52 +260,37 @@ export default function EditCycleLog() {
           ))}
         </View>
         {fluxo !== null && (
-          <Text style={styles.fluxoLabel}>
+          <Text style={[styles.fluxoLabel, { color: theme.primary }]}>
             {fluxo <= 2 ? "Leve" : fluxo === 3 ? "Moderado" : "Intenso"}
           </Text>
         )}
       </View>
 
       {/* Relações */}
-      <View style={styles.card}>
+      <View style={[styles.card, { backgroundColor: theme.secondary }]}>
         <View style={styles.header}>
-          <Text style={styles.subtitle}>Sexo</Text>
+          <Text style={[styles.subtitle, { color: theme.primary }]}>Sexo</Text>
           <TouchableOpacity onPress={() => router.push(`/SexualActivity?date=${date}`)}>
-            <Feather name="chevron-right" size={20} color="#6a3b7d" />
+            <Feather name="chevron-right" size={20} color={theme.primary} />
           </TouchableOpacity>
         </View>
         <View style={[styles.row, { flexWrap: "wrap", justifyContent: "space-between" }]}>
-          {([
-            { campo: "pratica", icon: "heart", label: "Não praticou", ativoLabel: "Praticou" },
-            { campo: "preservativo", icon: "shield-heart", label: "Sem proteção", ativoLabel: "Protegido" },
-            { campo: "orgasmo", icon: "grin-hearts", label: "Sem orgasmo", ativoLabel: "Teve orgasmo" }
-          ] as {
-            campo: keyof typeof atividadeSexual;
-            icon: string;
-            label: string;
-            ativoLabel: string;
-          }[]).map(({ campo, icon, label, ativoLabel }) => {
+          {(["pratica", "preservativo", "orgasmo"] as const).map((campo) => {
+            const icons = { pratica: "heart", preservativo: "shield-heart", orgasmo: "grin-hearts" };
+            const labels = { pratica: ["Não praticou", "Praticou"], preservativo: ["Sem proteção", "Protegido"], orgasmo: ["Sem orgasmo", "Teve orgasmo"] };
             const ativo = atividadeSexual[campo];
             return (
               <TouchableOpacity key={campo} style={styles.iconWrapper} onPress={() => toggleAtividade(campo)}>
                 <View style={styles.iconCircle}>
-                  <FontAwesome6
-                    name={icon as any}
-                    size={24}
-                    solid={ativo}
-                    color={ativo ? "#a87cb3" : "#ccc"}
-                  />
+                  <FontAwesome6 name={icons[campo] as any} size={24} solid={ativo} color={ativo ? theme.button : "#ccc"} />
                 </View>
-                <Text style={styles.iconeLabel}>
-                  {ativo ? ativoLabel : label}
-                </Text>
+                <Text style={styles.iconeLabel}>{ativo ? labels[campo][1] : labels[campo][0]}</Text>
               </TouchableOpacity>
             );
           })}
-
           <TouchableOpacity style={styles.iconWrapper} onPress={() => toggleAtividade("vezes")}>
             <View style={styles.iconCircle}>
-              <Text style={{ fontSize: 18, fontWeight: "bold", color: "#a87cb3" }}>
+              <Text style={{ fontSize: 18, fontWeight: "bold", color: theme.button }}>
                 {atividadeSexual.vezes}
               </Text>
             </View>
@@ -315,7 +298,6 @@ export default function EditCycleLog() {
           </TouchableOpacity>
         </View>
       </View>
-
     </ScrollView>
   );
 }
@@ -323,17 +305,14 @@ export default function EditCycleLog() {
 const styles = StyleSheet.create({
   container: {
     paddingVertical: 50,
-    backgroundColor: "#F6E4F6",
     paddingHorizontal: 15,
   },
   title: {
     fontSize: 20,
     fontWeight: "bold",
-    color: "#6a3b7d",
     marginBottom: 20,
   },
   card: {
-    backgroundColor: "#fff",
     borderRadius: 10,
     padding: 15,
     marginBottom: 20,
@@ -349,24 +328,20 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 16,
     fontWeight: "bold",
-    color: "#6a3b7d",
   },
   textInput: {
-    backgroundColor: "#f0f0f0",
     padding: 12,
     borderRadius: 10,
     marginTop: 10,
     textAlignVertical: "top",
   },
   readText: {
-    color: "#333",
     marginTop: 10,
     marginBottom: 15,
   },
   save: {
     marginTop: 10,
     textAlign: "right",
-    color: "#a87cb3",
     fontWeight: "bold",
   },
   row: {
@@ -387,18 +362,11 @@ const styles = StyleSheet.create({
   fluxoLabel: {
     textAlign: "center",
     fontWeight: "bold",
-    color: "#6a3b7d",
     marginTop: 10,
   },
   iconeLabel: {
     fontSize: 12,
     textAlign: "center",
     marginTop: 4,
-    color: "#6a3b7d",
-  },
-  selected: {
-    backgroundColor: "#a87cb3",
-    borderRadius: 8,
   },
 });
-

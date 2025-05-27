@@ -5,6 +5,7 @@ import BackButton from "../../components/BackButton";
 import { useLocalSearchParams } from "expo-router";
 import { auth, db } from "../../config/firebase";
 import { doc, getDoc, setDoc } from "firebase/firestore";
+import { useTheme } from "../../context/ThemeContext";
 
 const categorias = {
   "🌞 Boas vibrações": [
@@ -47,6 +48,7 @@ const categorias = {
 export default function MoodsScreen() {
   const [selecionados, setSelecionados] = useState<string[]>([]);
   const { date } = useLocalSearchParams<{ date: string }>();
+  const { theme } = useTheme();
 
   useEffect(() => {
     const carregarHumores = async () => {
@@ -91,22 +93,22 @@ export default function MoodsScreen() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#F6E4F6" }}>
+    <View style={{ flex: 1, backgroundColor: theme.background }}>
       <BackButton />
       <View style={styles.header}>
-        <Text style={styles.pageTitle}>Humores</Text>
+        <Text style={[styles.pageTitle, { color: theme.primary }]}>Humores</Text>
       </View>
       <ScrollView contentContainerStyle={styles.container}>
         {Object.entries(categorias).map(([titulo, lista]) => (
-          <View key={titulo} style={styles.card}>
-            <Text style={styles.categoria}>{titulo}</Text>
+          <View key={titulo} style={[styles.card, { backgroundColor: theme.secondary }]}>
+            <Text style={[styles.categoria, { color: theme.primary }]}>{titulo}</Text>
             <View style={styles.grid}>
               {lista.map((item) => (
                 <TouchableOpacity
                   key={item.id}
                   style={[
                     styles.iconBox,
-                    selecionados.includes(item.id) && styles.selected,
+                    { backgroundColor: selecionados.includes(item.id) ? theme.button : theme.secondary },
                   ]}
                   onPress={() => toggleHumor(item.id)}
                 >
@@ -114,12 +116,12 @@ export default function MoodsScreen() {
                     name={item.icon as any}
                     size={18}
                     solid
-                    color={selecionados.includes(item.id) ? "#fff" : "#3C096C"}
+                    color={selecionados.includes(item.id) ? theme.buttonText : theme.primary}
                   />
                   <Text
                     style={[
                       styles.label,
-                      selecionados.includes(item.id) && { color: "#fff" },
+                      { color: selecionados.includes(item.id) ? theme.buttonText : theme.primary },
                     ]}
                   >
                     {item.label}
@@ -143,14 +145,12 @@ const styles = StyleSheet.create({
   pageTitle: {
     fontSize: 22,
     fontWeight: "bold",
-    color: "#6a3b7d",
   },
   container: {
     paddingBottom: 30,
     paddingHorizontal: 12,
   },
   card: {
-    backgroundColor: "#fff",
     borderRadius: 12,
     padding: 15,
     marginBottom: 20,
@@ -159,7 +159,6 @@ const styles = StyleSheet.create({
   categoria: {
     fontSize: 16,
     fontWeight: "bold",
-    color: "#6a3b7d",
     marginBottom: 10,
     textAlign: "center",
   },
@@ -170,7 +169,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
   },
   iconBox: {
-    backgroundColor: "#fff",
     borderRadius: 8,
     padding: 6,
     alignItems: "center",
@@ -179,12 +177,8 @@ const styles = StyleSheet.create({
     height: 70,
     margin: 4,
   },
-  selected: {
-    backgroundColor: "#a87cb3",
-  },
   label: {
     fontSize: 10,
-    color: "#6a3b7d",
     marginTop: 5,
     textAlign: "center",
   },
