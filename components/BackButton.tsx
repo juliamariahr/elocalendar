@@ -30,7 +30,7 @@ export default function BackButton({ route }: BackButtonProps) {
 const styles = StyleSheet.create({
   button: {
     position: "absolute",
-    top: 20,
+    top: 25,
     left: 20,
     zIndex: 10,
   },

@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, FlatList, StyleSheet, ActivityIndicator, ScrollView } from "react-native";
+import { View, Text, TouchableOpacity, FlatList, StyleSheet, ActivityIndicator, ScrollView, Image } from "react-native";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { FontAwesome5, MaterialCommunityIcons } from "@expo/vector-icons";
@@ -175,6 +175,44 @@ export default function Home() {
             style={{ borderRadius: 10 }}
           />
         </View>
+          <View style={{ width: "90%", marginTop: 20 }}>
+          <Text style={{ fontSize: 18, fontWeight: "bold", marginBottom: 10, color: theme.primary }}>Saúde</Text>
+
+          <TouchableOpacity
+            style={{ backgroundColor: "#fff", padding: 12, borderRadius: 12, marginBottom: 12, elevation: 3 }}
+            onPress={() => router.push("/CicloPsicologico")}
+
+          >
+            <Image source={require("../../assets/images/menstruacao.jpg")} style={{ width: "100%", height: 150, borderRadius: 8, marginBottom: 8 }} resizeMode="cover"/>
+            <Text style={{ fontSize: 16, fontWeight: "600", color: "#000" }}>O que é um ciclo saudável?</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={{ backgroundColor: "#fff", padding: 12, borderRadius: 12, marginBottom: 12, elevation: 3 }}
+            onPress={() => router.push("/Irregularidades")}
+          >
+            <Image source={require("../../assets/images/mulher.jpg")} style={{ width: "100%", height: 150, borderRadius: 8, marginBottom: 8 }} resizeMode="cover"/>
+            <Text style={{ fontSize: 16, fontWeight: "600", color: "#000" }}>Como identificar irregularidades?</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={{ backgroundColor: "#fff", padding: 12, borderRadius: 12, marginBottom: 12, elevation: 3 }}
+            onPress={() => router.push("/MetodosContraceptivos")}
+          >
+            <Image source={require("../../assets/images/anticoncepcional.jpg")} style={{ width: "100%", height: 150, borderRadius: 8, marginBottom: 8 }} resizeMode="cover"/>
+            <Text style={{ fontSize: 16, fontWeight: "600", color: "#000" }}>Métodos contraceptivos</Text>
+          </TouchableOpacity>
+
+            <TouchableOpacity
+            style={{ backgroundColor: "#fff", padding: 12, borderRadius: 12, marginBottom: 12, elevation: 3 }}
+            onPress={() => router.push("/ColetorMenstrual")}
+          >
+            <Image source={require("../../assets/images/coletor.jpg")} style={{ width: "100%", height: 150, borderRadius: 8, marginBottom: 8 }} resizeMode="cover"/>
+            <Text style={{ fontSize: 16, fontWeight: "600", color: "#000" }}>Coletor Menstrual</Text>
+          </TouchableOpacity>
+        </View>
+
+
       </ScrollView>
       <BottomNav />
     </View>
@@ -186,7 +224,7 @@ const styles = StyleSheet.create({
   container: { alignItems: "center", paddingVertical: 20, paddingBottom: 120 },
   loadingContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
   loadingText: { marginTop: 10, fontSize: 16 },
-  header: { width: "90%", flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingVertical: 15, paddingHorizontal: 20, borderRadius: 15, marginBottom: 20 },
+  header: { width: "90%", flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingVertical: 15, paddingHorizontal: 20, borderRadius: 15, marginBottom: 20, marginTop: 30 },
   headerTitle: { fontSize: 20, fontWeight: "bold" },
   calendarButton: { padding: 8, borderRadius: 10 },
   cycleInfoContainer: { backgroundColor: "#fff", padding: 15, borderRadius: 15, alignItems: "center", width: "90%", marginBottom: 15, elevation: 3 },
