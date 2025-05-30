@@ -76,9 +76,9 @@ export default function ColetorMenstrual() {
           </Text>
 
           <Text style={[styles.paragraph, { color: theme.text }]}>
-            - van Eijk AM, et al. Menstrual cup use, leakage, acceptability, safety, and availability: a systematic review and meta-analysis. Lancet Public Health. 2019;4(8):e376-e393.{"\n"}
-            - Agência de Proteção Ambiental dos EUA (EPA). Plastic Pollution Data. 2022.{"\n"}
-            - UNICEF. Guidance on Menstrual Health and Hygiene. 2019.
+            van Eijk AM, et al. Menstrual cup use, leakage, acceptability, safety, and availability: a systematic review and meta-analysis. Lancet Public Health. 2019;4(8):e376-e393.{"\n"}
+            Agência de Proteção Ambiental dos EUA (EPA). Plastic Pollution Data. 2022.{"\n"}
+            UNICEF. Guidance on Menstrual Health and Hygiene. 2019.
           </Text>
         </View>
       </ScrollView>

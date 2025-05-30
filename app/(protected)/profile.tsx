@@ -197,13 +197,24 @@ export default function Profile() {
               {allMethods.map((method) => (
                 <TouchableOpacity
                   key={method}
-                  style={[styles.option, userData.contraceptiveMethods?.includes(method) ? [styles.selectedOption, { backgroundColor: theme.primary }] : { backgroundColor: theme.button }]}
+                  style={[
+                    styles.option,
+                    userData.contraceptiveMethods?.includes(method)
+                      ? [styles.selectedOption, { backgroundColor: theme.primary }]
+                      : { backgroundColor: theme.button },
+                  ]}
                   onPress={() => toggleMethod(method)}
                 >
-                  <Text style={[
-                    styles.optionText,
-                    { color: userData.contraceptiveMethods?.includes(method) ? theme.buttonText : theme.text },
-                  ]}>
+                  <Text
+                    style={[
+                      styles.optionText,
+                      {
+                        color: userData.contraceptiveMethods?.includes(method)
+                          ? theme.buttonText
+                          : theme.text,
+                      },
+                    ]}
+                  >
                     {method}
                   </Text>
                 </TouchableOpacity>
@@ -211,10 +222,151 @@ export default function Profile() {
             </>
           ) : userData.contraceptiveMethods && userData.contraceptiveMethods.length > 0 ? (
             userData.contraceptiveMethods.map((method, index) => (
-              <Text key={index} style={[styles.text, { color: theme.text }]}>{method}</Text>
+              <Text key={index} style={[styles.text, { color: theme.text }]}>
+                {method}
+              </Text>
             ))
           ) : (
             <Text style={[styles.text, { color: theme.text }]}>Nenhum método selecionado</Text>
+          )}
+
+          {userData.contraceptiveMethods?.includes("Pílula") && (
+            <>
+              <Text style={[styles.label, { color: theme.primary }]}>Quantos dias de uso?</Text>
+              {editMode ? (
+                <TextInput
+                  style={[styles.input, { color: theme.text }]}
+                  keyboardType="numeric"
+                  value={userData.medication_days}
+                  onChangeText={(text) => setUserData({ ...userData, medication_days: text })}
+                  placeholder="Ex: 21"
+                />
+              ) : (
+                <Text style={[styles.text, { color: theme.text }]}>
+                  {userData.medication_days || "Não informado"}
+                </Text>
+              )}
+
+              <Text style={[styles.label, { color: theme.primary }]}>Semana de pausa (dias):</Text>
+              {editMode ? (
+                <TextInput
+                  style={[styles.input, { color: theme.text }]}
+                  keyboardType="numeric"
+                  value={userData.pause_week}
+                  onChangeText={(text) => setUserData({ ...userData, pause_week: text })}
+                  placeholder="Ex: 7"
+                />
+              ) : (
+                <Text style={[styles.text, { color: theme.text }]}>
+                  {userData.pause_week || "Não informado"}
+                </Text>
+              )}
+
+              <Text style={[styles.label, { color: theme.primary }]}>Horário da Pílula:</Text>
+              {editMode ? (
+                <View style={{ flexDirection: "row", gap: 10 }}>
+                  <TextInput
+                    style={[styles.input, { flex: 1, color: theme.text }]}
+                    keyboardType="numeric"
+                    value={userData.pill_hour}
+                    onChangeText={(text) => {
+                      let hour = text.replace(/\D/g, "");
+                      let num = parseInt(hour, 10);
+                      if (!isNaN(num)) {
+                        if (num > 23) num = 23;
+                        hour = num.toString();
+                      }
+                      setUserData({ ...userData, pill_hour: hour });
+                    }}
+                    placeholder="Hora (0-23)"
+                    maxLength={2}
+                  />
+                  <TextInput
+                    style={[styles.input, { flex: 1, color: theme.text }]}
+                    keyboardType="numeric"
+                    value={userData.pill_minute}
+                    onChangeText={(text) => {
+                      let minute = text.replace(/\D/g, "");
+                      let num = parseInt(minute, 10);
+                      if (!isNaN(num)) {
+                        if (num > 59) num = 59;
+                        minute = num.toString();
+                      }
+                      setUserData({ ...userData, pill_minute: minute });
+                    }}
+                    placeholder="Minuto (0-59)"
+                    maxLength={2}
+                  />
+                </View>
+              ) : (
+                <Text style={[styles.text, { color: theme.text }]}>
+                  {userData.pill_hour && userData.pill_minute
+                    ? `${userData.pill_hour.padStart(2, "0")}:${userData.pill_minute.padStart(2, "0")}`
+                    : "Não informado"}
+                </Text>
+              )}
+            </>
+          )}
+
+          {userData.contraceptiveMethods?.includes("Injeção") && (
+            <>
+              <Text style={[styles.label, { color: theme.primary }]}>Tipo de Injeção:</Text>
+              {editMode ? (
+                <View style={{ flexDirection: "row", gap: 10 }}>
+                  <TouchableOpacity
+                    style={[
+                      styles.option,
+                      {
+                        flex: 1,
+                        backgroundColor:
+                          userData.injection_type === "Mensal" ? theme.primary : theme.button,
+                      },
+                    ]}
+                    onPress={() => setUserData({ ...userData, injection_type: "Mensal" })}
+                  >
+                    <Text
+                      style={{
+                        color:
+                          userData.injection_type === "Mensal"
+                            ? theme.buttonText
+                            : theme.text,
+                        textAlign: "center",
+                      }}
+                    >
+                      Mensal
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={[
+                      styles.option,
+                      {
+                        flex: 1,
+                        backgroundColor:
+                          userData.injection_type === "Trimestral" ? theme.primary : theme.button,
+                      },
+                    ]}
+                    onPress={() => setUserData({ ...userData, injection_type: "Trimestral" })}
+                  >
+                    <Text
+                      style={{
+                        color:
+                          userData.injection_type === "Trimestral"
+                            ? theme.buttonText
+                            : theme.text,
+                        textAlign: "center",
+                      }}
+                    >
+                      Trimestral
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              ) : (
+                <Text style={[styles.text, { color: theme.text }]}>
+                  {userData.injection_type || "Não informado"}
+                </Text>
+              )}
+            </>
           )}
 
           {editMode && (
