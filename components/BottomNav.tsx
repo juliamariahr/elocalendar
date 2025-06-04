@@ -29,7 +29,7 @@ export default function BottomNav() {
       >
         <Ionicons name="add" size={36} color={theme.bottomNav.plusButtonIconColor} />
       </TouchableOpacity>
-      <TouchableOpacity>
+      <TouchableOpacity onPress={() => router.push('/AnalysisScreen')}>
         <Ionicons name="bar-chart-outline" size={28} color={theme.bottomNav.iconColor} />
       </TouchableOpacity>
       <TouchableOpacity onPress={() => router.push('/profile')}>
