@@ -165,9 +165,23 @@ export default function Home() {
         </View>
 
         <View style={styles.graphBox}>
-          <Text style={styles.graphTitle}>🌸 Ciclo nos últimos dias</Text>
+          <Text style={styles.graphTitle}>🌸 Ciclo nos últimos meses</Text>
           <LineChart
-            data={data}
+            data={{
+              labels: ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"],
+              datasets: [{
+                data: [
+                  "Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"
+                ].map(mes => {
+                  const anoAtual = new Date().getFullYear();
+                  const dias = ciclo.menstruationDaysPassados.filter(d => {
+                    const data = new Date(`${d}T12:00:00`);
+                    return data.getFullYear() === anoAtual && data.getMonth() === ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"].indexOf(mes);
+                  });
+                  return dias.length;
+                })
+              }]
+            }}
             width={screenWidth * 0.9}
             height={220}
             chartConfig={chartConfig}
