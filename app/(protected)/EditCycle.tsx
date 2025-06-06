@@ -129,7 +129,7 @@ export default function EditCycleLog() {
     } else if (campo === "pratica") {
       const novoValor = !atividadeSexual.pratica;
       atualizado = novoValor
-        ? { ...atividadeSexual, pratica: true }
+        ? { ...atividadeSexual, pratica: true, vezes: 1 }
         : { pratica: false, preservativo: false, orgasmo: false, vezes: 0 };
     } else {
       atualizado = {
