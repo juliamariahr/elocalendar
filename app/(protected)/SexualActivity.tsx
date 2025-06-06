@@ -74,6 +74,7 @@ export default function SexualActivityScreen() {
       salvarDados("nao", null, null, 0);
     } else {
       setPratica("sim");
+      setVezes(1);
       salvarDados("sim", preservativo, orgasmo, vezes);
     }
   };
