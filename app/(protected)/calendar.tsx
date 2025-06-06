@@ -230,8 +230,8 @@ export default function CalendarScreen() {
     });
 
     futurasMenstruacoes?.forEach(({ inicio, fim }) => {
-      let data = new Date(inicio);
-      const end = new Date(fim);
+      let data = new Date(inicio + "T12:00:00");
+      const end = new Date(fim + "T12:00:00");
       while (data <= end) {
         const dateStr = getLocalDateString(data);
         if (!markedDates[dateStr]) {

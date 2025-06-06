@@ -116,7 +116,14 @@ export default function Home() {
                   })()
                 : "Carregando..."}
           </Text>
-          <Text style={styles.subtext}>{formatarData(ciclo.proximaMenstruacao)}</Text>
+          <Text style={styles.subtext}>
+            {formatarData(
+              menstruandoHoje
+                ? ciclo.futurasMenstruacoes[0]?.inicio
+                : ciclo.proximaMenstruacao
+            )}
+            {menstruandoHoje ? " - próxima menstruação" : ""}
+          </Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={[styles.button, { backgroundColor: theme.primary }]} onPress={selecionarMenstruacao}>
