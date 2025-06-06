@@ -56,29 +56,29 @@ export async function scheduleNotification(title: string, body: string, secondsF
 export async function scheduleDailyPillReminder(hour: number, minute: number) {
   if (Platform.OS !== "android") return;
 
-  const now = new Date();
-  const firstTrigger = new Date();
-  firstTrigger.setHours(hour, minute, 0, 0);
+  // const now = new Date();
+  // const firstTrigger = new Date();
+  // firstTrigger.setHours(hour, minute, 0, 0);
 
-  if (firstTrigger <= now) {
-    firstTrigger.setDate(firstTrigger.getDate() + 1);
-  }
+  // if (firstTrigger <= now) {
+  //   firstTrigger.setDate(firstTrigger.getDate() + 1);
+  // }
 
-  const secondsUntil = Math.floor((firstTrigger.getTime() - now.getTime()) / 1000);
+  // const secondsUntil = Math.floor((firstTrigger.getTime() - now.getTime()) / 1000);
 
-  const oneTimeId = await Notifications.scheduleNotificationAsync({
-    content: {
-      title: "Hora de tomar a pílula!",
-      body: "Não esqueça de tomar seu anticoncepcional.",
-      sound: true,
-    },
-    trigger: {
-      seconds: secondsUntil,
-      repeats: false,
-      channelId: "default",
-    },
-  });
-  scheduledNotificationIds.push(oneTimeId);
+  // const oneTimeId = await Notifications.scheduleNotificationAsync({
+  //   content: {
+  //     title: "Hora de tomar a pílula!",
+  //     body: "Não esqueça de tomar seu anticoncepcional.",
+  //     sound: true,
+  //   },
+  //   trigger: {
+  //     seconds: secondsUntil,
+  //     repeats: false,
+  //     channelId: "default",
+  //   },
+  // });
+  // scheduledNotificationIds.push(oneTimeId);
 
   const recurringId = await Notifications.scheduleNotificationAsync({
     content: {
@@ -208,7 +208,7 @@ export async function schedulePatchReminder(patchInterval: number) {
 
   scheduledNotificationIds.push(id);
 }
-  export async function scheduleInjectionReminder(type: "Mensal" | "Trimestral") {
+export async function scheduleInjectionReminder(type: "Mensal" | "Trimestral") {
     if (Platform.OS !== 'android') return;
   
     const intervalDays = type === "Mensal" ? 30 : 90;

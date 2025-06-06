@@ -4,6 +4,7 @@ import { auth } from '../config/firebase';
 import { useEffect, useState } from 'react';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { registerForPushNotificationsAsync } from '../services/notifications';
+import * as Notifications from 'expo-notifications';
 
 export default function Index() {
   const router = useRouter();
@@ -19,7 +20,18 @@ export default function Index() {
       }
     });
 
-    return () => unsubscribe();
+    const notificationSubscription = Notifications.addNotificationResponseReceivedListener(() => {
+      if (auth.currentUser) {
+        router.replace('/home');
+      } else {
+        router.replace('/login');
+      }
+    });
+
+    return () => {
+      unsubscribe();
+      notificationSubscription.remove();
+    };
   }, []);
 
   return (
