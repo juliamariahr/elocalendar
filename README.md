@@ -110,6 +110,19 @@ Aplicativo mobile desenvolvido para auxiliar pessoas que menstruam no acompanham
 
 ----
 
+### 🛠️ Como gerar o APK
+
+Para gerar um APK pronto para instalação em dispositivos Android:
+
+```sh
+npx expo run:android --variant release
+```
+
+Após o build, o APK será gerado na pasta:
+android/app/build/outputs/apk/release/app-release.apk
+
+----
+
 ### ✅ Entregas
 
 | Sprint | Entrega | Status |
