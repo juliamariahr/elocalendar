@@ -79,7 +79,7 @@ Aplicativo mobile desenvolvido para auxiliar pessoas que menstruam no acompanham
 
      ```ts
       import { initializeApp, getApps, getApp } from "firebase/app";
-      import { getAuth } from "firebase/auth";
+      import { initializeAuth } from "firebase/auth";
       import { getFirestore } from "firebase/firestore";
       
       const firebaseConfig = {
@@ -91,9 +91,9 @@ Aplicativo mobile desenvolvido para auxiliar pessoas que menstruam no acompanham
         appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID,
       };
       
-      const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+      const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
       
-      const auth = getAuth(app);
+      const auth = initializeAuth(app);
       const db = getFirestore(app);
       
       export { auth, db };
