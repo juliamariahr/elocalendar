@@ -108,3 +108,13 @@ Aplicativo mobile desenvolvido para auxiliar pessoas que menstruam no acompanham
    - Escaneie o QR Code com o aplicativo **Expo Go** ou
    - Use um emulador Android/iOS
 
+----
+
+### ✅ Entregas
+
+| Sprint | Entrega | Status |
+|--------|------------|---------|
+| 1 | [Link](https://github.com/juliamariahr/elocalendar/tree/Sprint-1) | ✅ |
+| 2 | [Link](https://github.com/juliamariahr/elocalendar/tree/Sprint-2) | ✅ |
+| 3 | [Link](https://github.com/juliamariahr/elocalendar/tree/Sprint-3) | ✅ |
+
