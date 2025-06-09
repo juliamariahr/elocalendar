@@ -121,13 +121,3 @@ npx expo run:android --variant release
 Após o build, o APK será gerado na pasta:
 android/app/build/outputs/apk/release/app-release.apk
 
-----
-
-### ✅ Entregas
-
-| Sprint | Entrega | Status |
-|--------|------------|---------|
-| 1 | [Link](https://github.com/juliamariahr/elocalendar/tree/Sprint-1) | ✅ |
-| 2 | [Link](https://github.com/juliamariahr/elocalendar/tree/Sprint-2) | ✅ |
-| 3 | [Link](https://github.com/juliamariahr/elocalendar/tree/Sprint-3) | ✅ |
-
